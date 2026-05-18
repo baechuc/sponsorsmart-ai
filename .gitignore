@@ -1,0 +1,42 @@
+# ── Model files (terlalu besar untuk GitHub) ─────────
+best_indobert_model/
+svm_model.pkl
+*.pkl
+*.pt
+*.bin
+*.pth
+
+# ── Dataset (jangan upload PDF ke GitHub) ────────────
+dataset/
+*.pdf
+*.rar
+*.zip
+*.csv
+
+# ── Output folder ────────────────────────────────────
+sponsorsmart_output/
+outputs/
+
+# ── Python ───────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+env/
+
+# ── Jupyter / Colab ──────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Logs ─────────────────────────────────────────────
+*.log
+nohup.out
+streamlit.log
+
+# ── OS ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
