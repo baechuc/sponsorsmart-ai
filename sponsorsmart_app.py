@@ -60,7 +60,7 @@ HF_REPO_ID    = "calpycbara/sponsorsmart-indobert"
 OCR_THRESHOLD = 50
 
 # ── HuggingFace Token ────────────────────────────────
-HF_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", "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")
+HF_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", None)
 from huggingface_hub import login as hf_login
 hf_login(token=HF_TOKEN)
 
