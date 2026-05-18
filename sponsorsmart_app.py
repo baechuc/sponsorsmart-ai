@@ -120,6 +120,27 @@ VAR_ICONS = {
     "Anggaran":"💰", "Kredibilitas":"🏛️"
 }
 
+# ── Custom SVM Pipeline ───────────────────────────────
+class ThresholdSVMPipeline:
+    """
+    SVM Pipeline dengan threshold yang dapat diatur.
+    Harus ada di sini agar pickle.load() bisa mengenali class-nya.
+    """
+    def __init__(self, tfidf, svm, threshold=0.6):
+        self.tfidf     = tfidf
+        self.svm       = svm
+        self.threshold = threshold
+        self.classes_  = svm.classes_
+
+    def predict(self, texts):
+        probs     = self.predict_proba(texts)
+        layak_idx = list(self.classes_).index("Layak")
+        return ["Layak" if p[layak_idx] >= self.threshold
+                else "Tidak Layak" for p in probs]
+
+    def predict_proba(self, texts):
+        return self.svm.predict_proba(self.tfidf.transform(texts))
+
 # ── Fungsi Load Model ─────────────────────────────────
 @st.cache_resource
 def load_bert_model():
@@ -135,7 +156,6 @@ def load_bert_model():
     except Exception as e:
         return None, None
 
-@st.cache_resource
 def load_svm_model():
     """
     Load SVM model dari HuggingFace Hub.
@@ -151,7 +171,9 @@ def load_svm_model():
         with open(svm_path, "rb") as f:
             return pickle.load(f)
     except Exception as e:
-        st.error(f"[SVM Load Error] {e}")
+        import traceback
+        print(f"[SVM Load Error] {e}")
+        print(traceback.format_exc())
         return None
 
 # ── Fungsi Ekstraksi PDF ──────────────────────────────
