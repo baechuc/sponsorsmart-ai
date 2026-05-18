@@ -59,6 +59,11 @@ st.divider()
 HF_REPO_ID    = "calpycbara/sponsorsmart-indobert"
 OCR_THRESHOLD = 50
 
+# ── HuggingFace Token ────────────────────────────────
+HF_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", "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")
+from huggingface_hub import login as hf_login
+hf_login(token=HF_TOKEN)
+
 # ── Rubric Keywords ───────────────────────────────────
 RUBRIC_KEYWORDS = {
     "Exposure": [
@@ -138,10 +143,15 @@ def load_svm_model():
     """
     try:
         from huggingface_hub import hf_hub_download
-        svm_path = hf_hub_download(repo_id=HF_REPO_ID, filename="svm_model.pkl")
+        svm_path = hf_hub_download(
+            repo_id=HF_REPO_ID,
+            filename="svm_model.pkl",
+            token=HF_TOKEN
+        )
         with open(svm_path, "rb") as f:
             return pickle.load(f)
     except Exception as e:
+        st.error(f"[SVM Load Error] {e}")
         return None
 
 # ── Fungsi Ekstraksi PDF ──────────────────────────────
@@ -433,39 +443,21 @@ if uploaded_file is not None:
         # ── Keputusan Final ───────────────────────────
         st.markdown("#### ⚖️ Keputusan Final")
 
-        # ── Keputusan Final: Rubric >= 3 DAN model AI setuju ─────────
-        rubric_ok = rubric_result["total"] >= 3
-
+        # Prioritas: IndoBERT > SVM > Rubric Heuristik
         if model_choice == "IndoBERT (Rekomendasi)":
-            if bert_result["label"]:
-                # Keduanya harus setuju
-                ai_ok      = bert_result["label"] == "Layak"
-                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
-                using_fallback = False
-            else:
-                # IndoBERT tidak tersedia — fallback ke rubric saja
-                final_label    = rubric_result["heuristic_label"]
-                using_fallback = True
-
+            final_label = bert_result["label"] or rubric_result["heuristic_label"]
         elif model_choice == "SVM + TF-IDF":
-            if svm_label:
-                ai_ok      = svm_label == "Layak"
-                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
-                using_fallback = False
-            else:
-                final_label    = rubric_result["heuristic_label"]
-                using_fallback = True
+            final_label = svm_label or rubric_result["heuristic_label"]
+        else:
+            final_label = (bert_result["label"] or svm_label or
+                           rubric_result["heuristic_label"])
 
-        else:  # Keduanya (Bandingkan)
-            if bert_result["label"] or svm_label:
-                # Ambil konsensus model yang tersedia
-                ai_labels  = [l for l in [bert_result["label"], svm_label] if l]
-                ai_ok      = ai_labels.count("Layak") > len(ai_labels) / 2
-                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
-                using_fallback = False
-            else:
-                final_label    = rubric_result["heuristic_label"]
-                using_fallback = True
+        # Tandai jika menggunakan rubric fallback
+        using_fallback = (
+            (model_choice == "IndoBERT (Rekomendasi)" and not bert_result["label"]) or
+            (model_choice == "SVM + TF-IDF"           and not svm_label) or
+            (model_choice == "Keduanya (Bandingkan)"  and not bert_result["label"] and not svm_label)
+        )
 
         badge_class = "layak-badge" if final_label == "Layak" else "tidak-layak-badge"
         label_text  = "✅ LAYAK" if final_label == "Layak" else "❌ TIDAK LAYAK"
