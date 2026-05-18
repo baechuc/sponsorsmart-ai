@@ -154,8 +154,8 @@ File yang diupload:
 ## 🏫 Informasi Capstone
 
 - **Program:** Data Science
-- **Institusi:** [Nama Institusi]
-- **Tahun:** 2024/2025
+- **Institusi:** [TELKOM UNIVERSITY]
+- **Tahun:** 2026
 
 ---
 
