@@ -465,21 +465,37 @@ if uploaded_file is not None:
         # ── Keputusan Final ───────────────────────────
         st.markdown("#### ⚖️ Keputusan Final")
 
-        # Prioritas: IndoBERT > SVM > Rubric Heuristik
-        if model_choice == "IndoBERT (Rekomendasi)":
-            final_label = bert_result["label"] or rubric_result["heuristic_label"]
-        elif model_choice == "SVM + TF-IDF":
-            final_label = svm_label or rubric_result["heuristic_label"]
-        else:
-            final_label = (bert_result["label"] or svm_label or
-                           rubric_result["heuristic_label"])
+        # ── Keputusan Final: Rubric >= 3 DAN model AI setuju ─────────
+        rubric_ok = rubric_result["total"] >= 3
 
-        # Tandai jika menggunakan rubric fallback
-        using_fallback = (
-            (model_choice == "IndoBERT (Rekomendasi)" and not bert_result["label"]) or
-            (model_choice == "SVM + TF-IDF"           and not svm_label) or
-            (model_choice == "Keduanya (Bandingkan)"  and not bert_result["label"] and not svm_label)
-        )
+        if model_choice == "IndoBERT (Rekomendasi)":
+            if bert_result["label"]:
+                ai_ok       = bert_result["label"] == "Layak"
+                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
+                using_fallback = False
+            else:
+                final_label    = rubric_result["heuristic_label"]
+                using_fallback = True
+
+        elif model_choice == "SVM + TF-IDF":
+            if svm_label:
+                ai_ok       = svm_label == "Layak"
+                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
+                using_fallback = False
+            else:
+                final_label    = rubric_result["heuristic_label"]
+                using_fallback = True
+
+        else:  # Keduanya (Bandingkan)
+            if bert_result["label"] or svm_label:
+                ai_labels   = [l for l in [bert_result["label"], svm_label] if l]
+                # Keduanya harus setuju Layak
+                ai_ok       = all(l == "Layak" for l in ai_labels)
+                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
+                using_fallback = False
+            else:
+                final_label    = rubric_result["heuristic_label"]
+                using_fallback = True
 
         badge_class = "layak-badge" if final_label == "Layak" else "tidak-layak-badge"
         label_text  = "✅ LAYAK" if final_label == "Layak" else "❌ TIDAK LAYAK"
