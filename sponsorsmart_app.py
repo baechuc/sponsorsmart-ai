@@ -564,19 +564,26 @@ with st.sidebar:
     st.markdown("**🔌 Status Sistem AI**")
 
     with st.spinner("Memeriksa status..."):
-        svm_check = load_svm_model()
+        tokenizer_check, model_check = load_bert_model()
+        svm_check                    = load_svm_model()
 
-    svm_status = ("🟢", "Siap digunakan") if svm_check is not None else ("🔴", "Tidak tersedia")
+    svm_status  = ("🟢", "Siap") if svm_check is not None else ("🔴", "Tidak tersedia")
+    bert_status = ("🟢", "Siap") if tokenizer_check is not None else ("🔴", "Tidak tersedia")
 
     st.markdown(f'''
     <div class="sidebar-status-row">
         <span>{svm_status[0]}</span>
-        <span style="font-weight:600;">Sistem Penilaian AI</span>
+        <span style="font-weight:600;">Model Utama</span>
         <span style="margin-left:auto; font-size:0.75rem; color:#718096;">{svm_status[1]}</span>
+    </div>
+    <div class="sidebar-status-row">
+        <span>{bert_status[0]}</span>
+        <span style="font-weight:600;">Model Pembanding</span>
+        <span style="margin-left:auto; font-size:0.75rem; color:#718096;">{bert_status[1]}</span>
     </div>
     ''', unsafe_allow_html=True)
 
-    if svm_check is None:
+    if svm_check is None and tokenizer_check is None:
         st.warning("⚠️ Sistem AI tidak tersedia. Hanya Penilaian Rubrikasi yang aktif.")
 
     st.divider()
@@ -622,7 +629,7 @@ if uploaded_file is None:
         <div>
             <span class="info-pill">📄 Format: PDF</span>
             <span class="info-pill">🔍 pdfPlumber + OCR</span>
-            <span class="info-pill">🤖 Penilaian AI Otomatis</span>
+            <span class="info-pill">⭐ Model Utama + 🔬 Pembanding</span>
             <span class="info-pill">⚡ 2 Tahap Penilaian</span>
         </div>
     </div>
@@ -639,7 +646,7 @@ if uploaded_file is None:
         ("01", "📋", "Penilaian Rubrikasi",
          "5 variabel keyword diperiksa secara otomatis. Skor < 3 dari 5 → proposal langsung ditolak."),
         ("02", "🤖", "Verifikasi AI",
-         "Proposal yang lolos kelengkapan dinilai lebih mendalam oleh sistem AI secara otomatis."),
+         "Proposal yang lolos kelengkapan dinilai oleh dua model AI. Keputusan final ditentukan oleh model terbaik."),
         ("03", "⚖️", "Keputusan Final",
          "Layak jika rubrik ✅ dan AI ✅. Konflik antara keduanya → rekomendasi review manual."),
     ]
@@ -771,6 +778,7 @@ else:
 
         svm_label    = None
         svm_conf     = 0
+        bert_result  = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
         ai_available = False
 
         if not rubric_result["passed"]:
@@ -782,30 +790,68 @@ else:
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown('<div class="model-card">', unsafe_allow_html=True)
-            st.markdown('<div class="model-name">🤖 Sistem Penilaian AI</div>', unsafe_allow_html=True)
-            with st.spinner("Sistem AI sedang menilai proposal Anda..."):
-                svm_model = load_svm_model()
-                if svm_model:
-                    ai_available = True
-                    svm_label    = svm_model.predict([full_text])[0]
-                    svm_prob     = svm_model.predict_proba([full_text])[0]
-                    svm_conf     = int(max(svm_prob) * 100)
-                    is_layak     = svm_label == "Layak"
-                    color        = "#48bb78" if is_layak else "#fc8181"
-                    verdict_text = "Direkomendasikan" if is_layak else "Tidak Direkomendasikan"
-                    verdict_icon = "✅" if is_layak else "❌"
-                    st.markdown(f"""
-                    <div style="font-size:1.6rem; font-weight:800; color:{color};
-                                margin:0.5rem 0 0.8rem; letter-spacing:-0.02em;">
-                        {verdict_icon} {verdict_text}
-                    </div>
-                    """, unsafe_allow_html=True)
-                    st.progress(svm_conf)
-                    st.caption(f"Tingkat Keyakinan AI: **{svm_conf}%**")
-                else:
-                    st.warning(f"⚠️ Sistem AI tidak tersedia. Pastikan model sudah diupload ke `{HF_REPO_ID}`")
-            st.markdown('</div>', unsafe_allow_html=True)
+            col_svm, col_bert = st.columns(2)
+
+            # ── Model Utama: SVM (penentu keputusan) ──
+            with col_svm:
+                st.markdown('<div class="model-card">', unsafe_allow_html=True)
+                st.markdown('''<div class="model-name">⭐ Model Utama <span style="font-size:0.65rem;color:#f6ad55;margin-left:4px;">PENENTU KEPUTUSAN</span></div>''', unsafe_allow_html=True)
+                with st.spinner("Menilai proposal..."):
+                    svm_model = load_svm_model()
+                    if svm_model:
+                        ai_available = True
+                        svm_label    = svm_model.predict([full_text])[0]
+                        svm_prob     = svm_model.predict_proba([full_text])[0]
+                        svm_conf     = int(max(svm_prob) * 100)
+                        is_layak     = svm_label == "Layak"
+                        color        = "#48bb78" if is_layak else "#fc8181"
+                        verdict_text = "Direkomendasikan" if is_layak else "Tidak Direkomendasikan"
+                        verdict_icon = "✅" if is_layak else "❌"
+                        st.markdown(f"""
+                        <div style="font-size:1.5rem; font-weight:800; color:{color};
+                                    margin:0.5rem 0 0.6rem; letter-spacing:-0.02em;">
+                            {verdict_icon} {verdict_text}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.progress(svm_conf)
+                        st.caption(f"Tingkat Keyakinan: **{svm_conf}%**")
+                    else:
+                        st.warning(f"⚠️ Model utama tidak tersedia.")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            # ── Model Pembanding: IndoBERT (hanya informasi) ──
+            with col_bert:
+                st.markdown('<div class="model-card">', unsafe_allow_html=True)
+                st.markdown('''<div class="model-name">🔬 Model Pembanding <span style="font-size:0.65rem;color:#718096;margin-left:4px;">REFERENSI</span></div>''', unsafe_allow_html=True)
+                with st.spinner("Menilai proposal (pembanding)..."):
+                    tokenizer, bert_model = load_bert_model()
+                    bert_result           = predict_bert(full_text, tokenizer, bert_model)
+                    if bert_result["label"]:
+                        is_layak_bert = bert_result["label"] == "Layak"
+                        color_bert    = "#48bb78" if is_layak_bert else "#fc8181"
+                        verdict_bert  = "Direkomendasikan" if is_layak_bert else "Tidak Direkomendasikan"
+                        icon_bert     = "✅" if is_layak_bert else "❌"
+                        conf_bert     = int(bert_result["confidence"] * 100)
+                        st.markdown(f"""
+                        <div style="font-size:1.5rem; font-weight:800; color:{color_bert};
+                                    margin:0.5rem 0 0.6rem; letter-spacing:-0.02em;">
+                            {icon_bert} {verdict_bert}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.progress(conf_bert)
+                        st.caption(f"Tingkat Keyakinan: **{conf_bert}%**")
+                    else:
+                        st.info("Model pembanding tidak tersedia.")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            if ai_available and bert_result["label"] and svm_label != bert_result["label"]:
+                st.markdown("""
+                <div style="background:#1a1a0d; border:1px solid #b7791f33; border-radius:10px;
+                            padding:0.8rem 1.1rem; font-size:0.82rem; color:#f6ad55; margin-top:0.5rem;">
+                    ℹ️ Kedua model memberikan hasil berbeda. <b>Keputusan final mengikuti Model Utama</b> 
+                    karena terbukti lebih akurat berdasarkan evaluasi.
+                </div>
+                """, unsafe_allow_html=True)
 
         # ════════════════════════════════════════════
         # KEPUTUSAN FINAL
@@ -825,6 +871,7 @@ else:
             final_label  = "Direkomendasikan"
             final_reason = "rubric_only"
         else:
+            # Keputusan final selalu mengikuti Model Utama (SVM)
             if svm_label == "Layak":
                 final_label  = "Direkomendasikan"
                 final_reason = "rubric_pass_ai_agree"
