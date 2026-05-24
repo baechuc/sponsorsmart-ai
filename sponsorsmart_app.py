@@ -289,12 +289,7 @@ def render_score_chart(scores: dict):
 # ── Sidebar ───────────────────────────────────────────
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/target.png", width=80)
-    st.title("⚙️ Pengaturan")
-
-    model_choice = st.radio(
-        "Pilih Model AI (Tahap 2):",
-        ["IndoBERT (Rekomendasi)", "SVM + TF-IDF", "Keduanya (Bandingkan)"]
-    )
+    st.title("ℹ️ Info Sistem")
 
     st.divider()
     st.markdown("### 🔌 Status Model")
@@ -303,20 +298,11 @@ with st.sidebar:
         tokenizer_check, model_check = load_bert_model()
         svm_check                    = load_svm_model()
 
-    if tokenizer_check is not None:
-        st.markdown("🟢 **IndoBERT** — Terhubung")
-    else:
-        st.markdown("🔴 **IndoBERT** — Tidak ditemukan")
-        st.caption(f"Repo: `{HF_REPO_ID}`")
-
-    if svm_check is not None:
-        st.markdown("🟢 **SVM** — Terhubung")
-    else:
-        st.markdown("🔴 **SVM** — Tidak ditemukan")
-        st.caption("File `svm_model.pkl` belum ada di HuggingFace repo.")
+    st.markdown("🟢 **Model Utama** — Siap" if svm_check else "🔴 **Model Utama** — Tidak ditemukan")
+    st.markdown("🟢 **Model Pembanding** — Siap" if tokenizer_check else "🔴 **Model Pembanding** — Tidak ditemukan")
 
     if tokenizer_check is None and svm_check is None:
-        st.warning("⚠️ Semua model offline.\nHanya Rubric Scoring yang aktif.")
+        st.warning("⚠️ Semua model offline.\nHanya Penilaian Rubrikasi yang aktif.")
 
     st.divider()
     st.markdown("### 🔁 Alur Penilaian")
@@ -324,18 +310,19 @@ with st.sidebar:
     Sistem ini bekerja dalam **2 tahap berurutan**:
 
     **Tahap 1 — Penilaian Rubrikasi**
-    Proposal dinilai dari 5 variabel keyword.
+    Proposal dinilai dari 5 aspek keyword.
     Skor < 3 → ❌ **Langsung ditolak**, AI tidak dipanggil.
 
-    **Tahap 2 — Verifikasi AI**
-    Hanya proposal yang lolos rubric (skor ≥ 3)
-    yang dikirim ke IndoBERT / SVM untuk keputusan final.
+    **Tahap 2 — Penilaian AI**
+    Dua model AI dijalankan otomatis.
+    Model Utama menentukan keputusan final.
 
-    **Label Final:**
-    - ✅ Layak = Rubric lolos **+** AI setuju
-    - ⚠️ Perlu Review = Rubric lolos, tapi AI ragu
-    - ❌ Tidak Layak = Rubric gagal (AI tidak dijalankan)
+    **Hasil Akhir:**
+    - ✅ Direkomendasikan = Rubrikasi ✓ + AI ✓
+    - ⚠️ Perlu Ditinjau Ulang = Rubrikasi ✓, AI ragu
+    - ❌ Tidak Direkomendasikan = Rubrikasi gagal
     """)
+
 
 # ── Main Content ──────────────────────────────────────
 st.subheader("📤 Upload Proposal Sponsorship")
@@ -434,25 +421,27 @@ if uploaded_file is not None:
         st.markdown("### Tahap 2 — Verifikasi AI")
 
         # Inisialisasi default
-        bert_result  = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
-        svm_label    = None
-        svm_conf     = 0
+        bert_result = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
+        svm_label   = None
+        svm_conf    = 0
         ai_available = False
 
         if not rubric_result["passed"]:
+            # Rubric gagal → tampilkan info, skip AI
             st.markdown(
                 '<div class="stage-skip" style="border:2px solid #adb5bd;border-radius:12px;'
                 'padding:1rem;background:#f8f9fa;opacity:0.7;">'
-                '⏭️ <b>Penilaian AI tidak dijalankan</b> — proposal sudah gugur di Tahap 1 (Penilaian Rubrikasi gagal).'
+                '⏭️ <b>AI tidak dijalankan</b> — proposal sudah gugur di Tahap 1 (Penilaian Rubrikasi gagal).'
                 '</div>',
                 unsafe_allow_html=True
             )
         else:
+            # Rubric lolos → jalankan kedua model otomatis
             svm_col, bert_col = st.columns(2)
 
-            # ── Model Utama: SVM (penentu keputusan) ──
+            # Model Utama: SVM — penentu keputusan
             with svm_col:
-                st.markdown("**⭐ Model Utama** <span style='font-size:0.72rem;color:#6d28d9;background:#ede9fe;padding:1px 6px;border-radius:4px;margin-left:4px;'>PENENTU KEPUTUSAN</span>", unsafe_allow_html=True)
+                st.markdown("**⭐ Model Utama** — Penentu Keputusan")
                 with st.spinner("⚙️ Menilai proposal..."):
                     svm_model = load_svm_model()
                     if svm_model:
@@ -460,24 +449,24 @@ if uploaded_file is not None:
                         svm_label    = svm_model.predict([full_text])[0]
                         svm_prob     = svm_model.predict_proba([full_text])[0]
                         svm_conf     = int(max(svm_prob) * 100)
-                        svm_verdict  = "Direkomendasikan" if svm_label == "Layak" else "Tidak Direkomendasikan"
+                        svm_display  = "Direkomendasikan" if svm_label == "Layak" else "Tidak Direkomendasikan"
                         badge        = "layak-badge" if svm_label == "Layak" else "tidak-layak-badge"
-                        st.markdown(f'<span class="{badge}">{svm_verdict}</span>', unsafe_allow_html=True)
+                        st.markdown(f'<span class="{badge}">{svm_display}</span>', unsafe_allow_html=True)
                         st.progress(svm_conf)
                         st.caption(f"Tingkat Keyakinan: {svm_conf}%")
                     else:
-                        st.warning(f"⚠️ Model Utama tidak tersedia.\nPastikan `svm_model.pkl` diupload ke `{HF_REPO_ID}`")
+                        st.warning(f"⚠️ Model Utama tidak tersedia. Pastikan `svm_model.pkl` diupload ke `{HF_REPO_ID}`")
 
-            # ── Model Pembanding: IndoBERT (referensi) ──
+            # Model Pembanding: IndoBERT — hanya referensi
             with bert_col:
-                st.markdown("**🔬 Model Pembanding** <span style='font-size:0.72rem;color:#6c757d;background:#f8f9fa;border:1px solid #dee2e6;padding:1px 6px;border-radius:4px;margin-left:4px;'>REFERENSI</span>", unsafe_allow_html=True)
+                st.markdown("**🔬 Model Pembanding** — Referensi")
                 with st.spinner("🧠 Menilai proposal (pembanding)..."):
                     tokenizer, bert_model = load_bert_model()
                     bert_result           = predict_bert(full_text, tokenizer, bert_model)
                     if bert_result["label"]:
-                        bert_verdict = "Direkomendasikan" if bert_result["label"] == "Layak" else "Tidak Direkomendasikan"
+                        bert_display = "Direkomendasikan" if bert_result["label"] == "Layak" else "Tidak Direkomendasikan"
                         badge        = "layak-badge" if bert_result["label"] == "Layak" else "tidak-layak-badge"
-                        st.markdown(f'<span class="{badge}">{bert_verdict}</span>', unsafe_allow_html=True)
+                        st.markdown(f'<span class="{badge}">{bert_display}</span>', unsafe_allow_html=True)
                         conf = int(bert_result["confidence"] * 100)
                         st.progress(conf)
                         st.caption(f"Tingkat Keyakinan: {conf}%")
@@ -485,14 +474,9 @@ if uploaded_file is not None:
                         st.info("Model pembanding tidak tersedia.")
 
             if ai_available and bert_result["label"] and svm_label != bert_result["label"]:
-                st.markdown(
-                    '<div class="review-badge" style="display:block;text-align:center;padding:0.6rem 1rem;font-size:0.88rem;margin-top:0.5rem;">'
-                    'ℹ️ Kedua model berbeda pendapat — Keputusan final mengikuti Model Utama'
-                    '</div>',
-                    unsafe_allow_html=True
-                )
+                st.info("ℹ️ Kedua model berbeda pendapat — keputusan final mengikuti Model Utama.")
 
-        # ════════════════════════════════════════════
+
         # KEPUTUSAN FINAL
         # ════════════════════════════════════════════
         st.divider()
@@ -556,15 +540,15 @@ if uploaded_file is not None:
 
             elif final_reason == "rubric_pass_ai_agree":
                 st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
-                st.success("✅ Model Utama mengkonfirmasi proposal ini layak mendapatkan sponsorship.")
+                st.success("✅ Model Utama mengkonfirmasi proposal layak mendapatkan sponsorship.")
                 st.info("💡 Proposal sudah lengkap dan dinilai baik. Silakan ajukan ke pihak sponsor.")
 
             elif final_reason == "rubric_pass_ai_disagree":
                 st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
                 st.warning(
-                    "⚠️ Model Utama menilai isi proposal masih kurang meyakinkan.\n\n"
-                    "Proposal sudah cukup lengkap secara struktur, namun perlu diperkuat pada bagian isi. "
-                    "Kami sarankan untuk merevisi sebelum diajukan."
+                    "⚠️ Model Utama menilai isi proposal masih perlu diperkuat.\n\n"
+                    "Proposal sudah cukup lengkap secara struktur, namun isi perlu direvisi "
+                    "sebelum diajukan ke pihak sponsor."
                 )
 
             if terpenuhi:
@@ -581,13 +565,13 @@ else:
     # ── Landing Page ──────────────────────────────────
     st.info("👆 Upload file PDF proposal sponsorship untuk memulai analisis.")
 
-    st.markdown("#### Cara Kerja Penilaian 2 Tahap")
+    st.markdown("#### Alur Penilaian 2 Tahap")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""
         <div class="metric-card">
             <h2>📋</h2><b>Tahap 1: Penilaian Rubrikasi</b>
-            <p>5 variabel diperiksa otomatis.<br>Skor &lt; 3 → langsung ditolak.</p>
+            <p>5 aspek proposal diperiksa.<br>Skor &lt; 3 → langsung ditolak.</p>
         </div>""", unsafe_allow_html=True)
     with col2:
         st.markdown("""
