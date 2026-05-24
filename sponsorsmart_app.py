@@ -261,6 +261,29 @@ def predict_bert(text: str, tokenizer, model) -> dict:
         "prob_tidak": probs[0]
     }
 
+# ── Fungsi Chart Skor ─────────────────────────────────
+def render_score_chart(scores: dict):
+    vars_  = list(scores.keys())
+    vals   = list(scores.values())
+    colors = ["#2ecc71" if v == 1 else "#e74c3c" for v in vals]
+
+    fig, ax = plt.subplots(figsize=(8, 3))
+    bars = ax.barh(vars_, vals, color=colors, edgecolor="white", height=0.5)
+    ax.set_xlim(0, 1.5)
+    ax.set_xlabel("Skor (0 = Tidak Terpenuhi, 1 = Terpenuhi)")
+    ax.set_title("Skor Tiap Variabel Rubric")
+
+    for bar, val in zip(bars, vals):
+        lbl = "✓ Terpenuhi" if val == 1 else "✗ Tidak"
+        ax.text(val + 0.05, bar.get_y() + bar.get_height() / 2,
+                lbl, va="center", fontsize=10, fontweight="bold")
+
+    green = mpatches.Patch(color="#2ecc71", label="Terpenuhi (1)")
+    red   = mpatches.Patch(color="#e74c3c", label="Tidak Terpenuhi (0)")
+    ax.legend(handles=[green, red], loc="lower right")
+    plt.tight_layout()
+    return fig
+
 # ── Sidebar ───────────────────────────────────────────
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/target.png", width=80)
