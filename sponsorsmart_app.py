@@ -19,159 +19,58 @@ st.set_page_config(
 # ── Custom CSS ────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
-
-    /* ── Hero ── */
-    .hero-wrapper {
-        background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
-        border: 1px solid #e0e4f5;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-    }
     .main-title {
-        font-size: 2.4rem; font-weight: 800;
+        font-size: 2.5rem; font-weight: 800;
         background: linear-gradient(135deg, #667eea, #764ba2);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 0.3rem; line-height: 1.1;
+        text-align: center; margin-bottom: 0.5rem;
     }
-    .subtitle { color: #6c757d; font-size: 0.95rem; }
-    .hero-badge {
-        display: inline-block;
-        background: #ede9fe; border: 1px solid #c4b5fd;
-        color: #6d28d9; font-size: 0.7rem; font-weight: 600;
-        padding: 0.25rem 0.8rem; border-radius: 20px;
-        margin-bottom: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase;
+    .subtitle { text-align: center; color: #666; margin-bottom: 2rem; }
+    .metric-card {
+        background: #f8f9fa; border-radius: 12px;
+        padding: 1rem; text-align: center;
+        border-left: 4px solid #667eea;
+        margin-bottom: 0.5rem;
     }
-
-    /* ── Section Header ── */
-    .section-header { display: flex; align-items: center; gap: 0.7rem; margin: 1.5rem 0 1rem; }
-    .section-badge {
-        background: #ede9fe; color: #6d28d9;
-        border: 1px solid #c4b5fd; border-radius: 6px;
-        padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+    .layak-badge {
+        background: #d4edda; color: #155724;
+        padding: 0.8rem 2rem; border-radius: 25px;
+        font-size: 1.4rem; font-weight: 700;
+        display: inline-block; margin: 1rem 0;
     }
-    .section-title { font-size: 1.1rem; font-weight: 700; color: #212529; }
-
-    /* ── Stage Cards ── */
-    .stage-card {
-        background: #ffffff; border: 1px solid #dee2e6;
-        border-radius: 14px; padding: 1.5rem 1.2rem;
-        text-align: center; position: relative;
-        transition: box-shadow 0.2s, border-color 0.2s;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    .tidak-layak-badge {
+        background: #f8d7da; color: #721c24;
+        padding: 0.8rem 2rem; border-radius: 25px;
+        font-size: 1.4rem; font-weight: 700;
+        display: inline-block; margin: 1rem 0;
     }
-    .stage-card:hover { border-color: #667eea; box-shadow: 0 4px 14px rgba(102,126,234,0.15); }
-    .stage-icon { font-size: 1.8rem; margin-bottom: 0.6rem; }
-    .stage-title { font-size: 0.9rem; font-weight: 700; color: #212529; margin-bottom: 0.4rem; }
-    .stage-desc { font-size: 0.8rem; color: #6c757d; line-height: 1.5; }
-    .stage-num { position: absolute; top: 10px; right: 12px; font-size: 0.68rem; font-weight: 600; color: #ced4da; }
-
-    /* ── Info Pill ── */
-    .info-pill {
-        display: inline-flex; align-items: center; gap: 0.3rem;
-        background: #f0f2ff; border: 1px solid #e0e4f5;
-        border-radius: 6px; padding: 0.4rem 0.8rem;
-        font-size: 0.8rem; color: #667eea; margin: 0.2rem;
+    .review-badge {
+        background: #fff3cd; color: #856404;
+        padding: 0.8rem 2rem; border-radius: 25px;
+        font-size: 1.4rem; font-weight: 700;
+        display: inline-block; margin: 1rem 0;
     }
-
-    /* ── Variabel Cards ── */
-    .var-card {
-        border-radius: 12px; padding: 1rem 0.8rem;
-        text-align: center; border: 1px solid transparent;
-        transition: transform 0.15s;
+    .stage-box {
+        border: 2px solid #dee2e6; border-radius: 12px;
+        padding: 1rem 1.2rem; margin-bottom: 1rem;
     }
-    .var-card:hover { transform: translateY(-2px); }
-    .var-card.pass { background: #f0fff4; border-color: #b2dfdb; }
-    .var-card.fail { background: #fff5f5; border-color: #f5c6cb; }
-    .var-name { font-size: 0.8rem; font-weight: 600; color: #495057; margin: 0.4rem 0; }
-    .var-status { font-size: 1.4rem; font-weight: 800; }
-    .var-status.pass { color: #2ecc71; }
-    .var-status.fail { color: #e74c3c; }
-    .var-score { font-size: 0.7rem; color: #adb5bd; margin-top: 0.3rem; }
-
-    /* ── Rubric Summary ── */
-    .rubric-summary {
-        border-radius: 10px; padding: 0.9rem 1.2rem; margin: 1rem 0;
-        font-weight: 600; font-size: 0.95rem;
-        display: flex; align-items: center; gap: 0.8rem;
-    }
-    .rubric-summary.pass { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
-    .rubric-summary.fail { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-
-    /* ── Model Cards ── */
-    .model-card {
-        background: #ffffff; border: 1px solid #dee2e6;
-        border-radius: 12px; padding: 1.2rem; height: 100%;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    }
-    .model-name { font-size: 0.82rem; font-weight: 700; color: #6c757d; margin-bottom: 0.8rem; }
-
-    /* ── Decision Card ── */
-    .decision-card { border-radius: 14px; padding: 1.8rem; text-align: center; margin: 1rem 0; }
-    .decision-card.layak      { background: #d4edda; border: 2px solid #c3e6cb; }
-    .decision-card.tidak-layak { background: #f8d7da; border: 2px solid #f5c6cb; }
-    .decision-card.review     { background: #fff3cd; border: 2px solid #ffeeba; }
-    .decision-label { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.4rem; }
-    .decision-label.layak       { color: #155724; }
-    .decision-label.tidak-layak { color: #721c24; }
-    .decision-label.review      { color: #856404; }
-    .decision-sub { font-size: 0.85rem; color: #6c757d; }
-
-    /* ── Saran Box ── */
-    .saran-box {
-        background: #fff3cd; border: 1px solid #ffeeba;
-        border-left: 3px solid #ffc107;
-        border-radius: 8px; padding: 0.8rem 1rem;
-        margin: 0.4rem 0; font-size: 0.86rem; color: #495057;
-    }
-    .saran-var { font-weight: 700; color: #856404; font-size: 0.8rem; margin-bottom: 0.2rem; }
-
-    /* ── Sidebar ── */
-    .sidebar-status-row {
-        display: flex; align-items: center; gap: 0.6rem;
-        padding: 0.55rem 0.8rem; background: #f8f9fa;
-        border-radius: 8px; margin-bottom: 0.4rem;
-        border: 1px solid #dee2e6; font-size: 0.84rem; color: #495057;
-    }
-
-    /* ── Streamlit overrides ── */
-    .stButton > button {
-        background: linear-gradient(135deg, #667eea, #764ba2) !important;
-        color: white !important; border: none !important;
-        border-radius: 10px !important; font-weight: 700 !important;
-        font-size: 1rem !important; padding: 0.7rem 1.5rem !important;
-        transition: opacity 0.2s !important;
-    }
-    .stButton > button:hover { opacity: 0.88 !important; }
-    .stMetric label { color: #6c757d !important; font-size: 0.8rem !important; }
-    .stMetric [data-testid="stMetricValue"] { color: #212529 !important; }
-    [data-testid="stExpander"] { background: #ffffff !important; border: 1px solid #dee2e6 !important; border-radius: 8px !important; }
-    .stAlert { border-radius: 8px !important; }
-    hr { border-color: #dee2e6 !important; }
-    h1,h2,h3,h4 { color: #212529 !important; }
-    p, li { color: #495057 !important; }
-    .stMarkdown p { color: #495057 !important; }
-    label { color: #495057 !important; }
-    .stRadio label { color: #495057 !important; font-size: 0.88rem !important; }
+    .stage-pass  { border-color: #2ecc71; background: #f0fff4; }
+    .stage-fail  { border-color: #e74c3c; background: #fff5f5; }
+    .stage-skip  { border-color: #adb5bd; background: #f8f9fa; opacity: 0.6; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Hero Header ───────────────────────────────────────
-st.markdown("""
-<div class="hero-wrapper">
-    <div class="hero-badge">🤖 Machine Learning · NLP · SVM + TF-IDF</div>
-    <div class="main-title">🎯 SponsorSmart AI</div>
-    <div class="subtitle">Sistem Pendukung Keputusan — Penilaian Kelayakan Proposal Sponsorship secara Otomatis & Transparan</div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<p class="main-title">🎯 SponsorSmart AI</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Sistem Pendukung Keputusan Penilaian Kelayakan Proposal Sponsorship</p>',
+            unsafe_allow_html=True)
+st.divider()
 
 # ── Konstanta ─────────────────────────────────────────
 HF_REPO_ID    = "calpycbara/sponsorsmart-indobert"
 OCR_THRESHOLD = 50
-RUBRIC_PASS_THRESHOLD = 3
+
+# Rubric gate threshold — proposal harus melewati ini sebelum ke AI
+RUBRIC_PASS_THRESHOLD = 3   # dari 5
 
 # ── HuggingFace Token ────────────────────────────────
 HF_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", "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")
@@ -251,7 +150,7 @@ class ThresholdSVMPipeline:
     def predict_proba(self, texts):
         return self.svm.predict_proba(self.tfidf.transform(texts))
 
-# ── Load Model ────────────────────────────────────────
+# ── Fungsi Load Model ─────────────────────────────────
 @st.cache_resource
 def load_bert_model():
     try:
@@ -266,7 +165,9 @@ def load_svm_model():
     try:
         from huggingface_hub import hf_hub_download
         svm_path = hf_hub_download(
-            repo_id=HF_REPO_ID, filename="svm_model.pkl", token=HF_TOKEN
+            repo_id=HF_REPO_ID,
+            filename="svm_model.pkl",
+            token=HF_TOKEN
         )
         with open(svm_path, "rb") as f:
             return pickle.load(f)
@@ -274,7 +175,7 @@ def load_svm_model():
         print(f"[SVM Load Error] {e}")
         return None
 
-# ── Ekstraksi PDF ─────────────────────────────────────
+# ── Fungsi Ekstraksi PDF ──────────────────────────────
 def extract_text(uploaded_file) -> tuple:
     import tempfile
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -310,8 +211,13 @@ def extract_text(uploaded_file) -> tuple:
 
     return full_text.strip(), method
 
-# ── Rubric Scoring ────────────────────────────────────
+# ── Fungsi Rubric Scoring ─────────────────────────────
 def score_rubric(text: str) -> dict:
+    """
+    Tahap 1: Filter rubric berbasis keyword.
+    Proposal yang tidak lolos (total < RUBRIC_PASS_THRESHOLD) langsung
+    ditolak — AI tidak akan dipanggil.
+    """
     text_lower = text.lower()
     scores, evidences = {}, {}
 
@@ -325,13 +231,19 @@ def score_rubric(text: str) -> dict:
         scores[var]    = 1 if len(unique_matched) >= THRESHOLDS[var] else 0
         evidences[var] = unique_matched[:3] if unique_matched else []
 
-    total  = sum(scores.values())
-    passed = total >= RUBRIC_PASS_THRESHOLD
+    total    = sum(scores.values())
+    passed   = total >= RUBRIC_PASS_THRESHOLD
 
-    return {"scores": scores, "evidences": evidences, "total": total, "passed": passed}
+    return {
+        "scores"  : scores,
+        "evidences": evidences,
+        "total"   : total,
+        "passed"  : passed,          # True = lolos filter, lanjut ke AI
+    }
 
-# ── Prediksi IndoBERT ─────────────────────────────────
+# ── Fungsi Prediksi IndoBERT ──────────────────────────
 def predict_bert(text: str, tokenizer, model) -> dict:
+    """Tahap 2: AI hanya dipanggil jika rubric sudah lolos."""
     if tokenizer is None or model is None:
         return {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
     inputs = tokenizer(
@@ -351,235 +263,140 @@ def predict_bert(text: str, tokenizer, model) -> dict:
         "prob_tidak": probs[0]
     }
 
-# ── Chart Skor ────────────────────────────────────────
+# ── Fungsi Chart Skor ─────────────────────────────────
 def render_score_chart(scores: dict):
     vars_  = list(scores.keys())
     vals   = list(scores.values())
-    colors = ["#48bb78" if v == 1 else "#fc8181" for v in vals]
+    colors = ["#2ecc71" if v == 1 else "#e74c3c" for v in vals]
 
     fig, ax = plt.subplots(figsize=(8, 3))
-    fig.patch.set_facecolor('#ffffff')
-    ax.set_facecolor('#f8fafc')
-
-    bars = ax.barh(vars_, vals, color=colors, edgecolor='none', height=0.45)
+    bars = ax.barh(vars_, vals, color=colors, edgecolor="white", height=0.5)
     ax.set_xlim(0, 1.5)
-    ax.set_xlabel("Skor (0 = Tidak Terpenuhi, 1 = Terpenuhi)", color='#64748b', fontsize=9)
-    ax.set_title("Skor Tiap Variabel — Penilaian Rubrikasi", color='#1e293b', fontsize=11, fontweight='bold', pad=12)
-    ax.tick_params(colors='#475569')
-    for spine in ax.spines.values():
-        spine.set_edgecolor('#e2e8f0')
+    ax.set_xlabel("Skor (0 = Tidak Terpenuhi, 1 = Terpenuhi)")
+    ax.set_title("Skor Tiap Variabel — Penilaian Rubrikasi")
 
     for bar, val in zip(bars, vals):
         lbl = "✓ Terpenuhi" if val == 1 else "✗ Tidak"
         ax.text(val + 0.05, bar.get_y() + bar.get_height() / 2,
-                lbl, va="center", fontsize=9, fontweight="bold",
-                color="#16a34a" if val == 1 else "#dc2626")
+                lbl, va="center", fontsize=10, fontweight="bold")
 
-    green = mpatches.Patch(color="#16a34a", label="Terpenuhi (1)")
-    red   = mpatches.Patch(color="#dc2626", label="Tidak Terpenuhi (0)")
-    legend = ax.legend(handles=[green, red], loc="lower right",
-                       facecolor='#ffffff', edgecolor='#e2e8f0', labelcolor='#475569')
+    green = mpatches.Patch(color="#2ecc71", label="Terpenuhi (1)")
+    red   = mpatches.Patch(color="#e74c3c", label="Tidak Terpenuhi (0)")
+    ax.legend(handles=[green, red], loc="lower right")
     plt.tight_layout()
     return fig
 
-# ══════════════════════════════════════════════════════
-# SIDEBAR
-# ══════════════════════════════════════════════════════
+# ── Sidebar ───────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
-    <div style="text-align:center; padding: 1rem 0 0.5rem;">
-        <div style="font-size:2.5rem">🎯</div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.1rem;
-                    background:linear-gradient(90deg,#4f46e5,#0ea5e9);
-                    -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-            SponsorSmart
-        </div>
-        <div style="font-size:0.72rem; color:#94a3b8; margin-top:0.2rem; letter-spacing:0.05em;">
-            v2.0 · Kelompok 2 · Telkom University
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.image("https://img.icons8.com/color/96/000000/target.png", width=80)
+    st.title("⚙️ Pengaturan")
+
+    model_choice = st.radio(
+        "Pilih Model AI (Tahap 2):",
+        ["IndoBERT (Rekomendasi)", "SVM + TF-IDF", "Keduanya (Bandingkan)"]
+    )
 
     st.divider()
+    st.markdown("### 🔌 Status Model")
 
-    st.divider()
-    st.markdown("**🔌 Status Sistem AI**")
-
-    with st.spinner("Memeriksa status..."):
+    with st.spinner("Cek koneksi model..."):
         tokenizer_check, model_check = load_bert_model()
         svm_check                    = load_svm_model()
 
-    svm_status  = ("🟢", "Siap") if svm_check is not None else ("🔴", "Tidak tersedia")
-    bert_status = ("🟢", "Siap") if tokenizer_check is not None else ("🔴", "Tidak tersedia")
+    if tokenizer_check is not None:
+        st.markdown("🟢 **IndoBERT** — Terhubung")
+    else:
+        st.markdown("🔴 **IndoBERT** — Tidak ditemukan")
+        st.caption(f"Repo: `{HF_REPO_ID}`")
 
-    st.markdown(f'''
-    <div class="sidebar-status-row">
-        <span>{svm_status[0]}</span>
-        <span style="font-weight:600;">Model Utama</span>
-        <span style="margin-left:auto; font-size:0.75rem; color:#718096;">{svm_status[1]}</span>
-    </div>
-    <div class="sidebar-status-row">
-        <span>{bert_status[0]}</span>
-        <span style="font-weight:600;">Model Pembanding</span>
-        <span style="margin-left:auto; font-size:0.75rem; color:#718096;">{bert_status[1]}</span>
-    </div>
-    ''', unsafe_allow_html=True)
+    if svm_check is not None:
+        st.markdown("🟢 **SVM** — Terhubung")
+    else:
+        st.markdown("🔴 **SVM** — Tidak ditemukan")
+        st.caption("File `svm_model.pkl` belum ada di HuggingFace repo.")
 
-    if svm_check is None and tokenizer_check is None:
-        st.warning("⚠️ Sistem AI tidak tersedia. Hanya Penilaian Rubrikasi yang aktif.")
+    if tokenizer_check is None and svm_check is None:
+        st.warning("⚠️ Semua model offline.\nHanya Rubric Scoring yang aktif.")
 
     st.divider()
-    st.markdown("**📖 Cara Kerja Penilaian**")
-    st.markdown('''
-    <div style="font-size:0.82rem; color:#64748b; line-height:1.8;">
-    <b style="color:#4f46e5;">Tahap 1 — Cek Kelengkapan Proposal</b><br>
-    Sistem memeriksa 5 aspek penting secara otomatis.<br>
-    Kurang dari 3 aspek → ❌ Proposal ditolak.<br><br>
-    <b style="color:#4f46e5;">Tahap 2 — Penilaian AI</b><br>
-    Proposal yang lolos dinilai lebih dalam oleh AI.<br><br>
-    <b style="color:#1e293b;">Hasil Akhir:</b><br>
-    ✅ <b style="color:#68d391;">Direkomendasikan</b> = Lolos semua penilaian<br>
-    ⚠️ <b style="color:#f6ad55;">Perlu Ditinjau</b> = Ada ketidaksesuaian<br>
-    ❌ <b style="color:#fc8181;">Tidak Direkomendasikan</b> = Tidak lolos
-    </div>
-    ''', unsafe_allow_html=True)
+    st.markdown("### 🔁 Alur Penilaian")
+    st.markdown("""
+    Sistem ini bekerja dalam **2 tahap berurutan**:
 
-# ══════════════════════════════════════════════════════
-# MAIN — Upload Section
-# ══════════════════════════════════════════════════════
-st.markdown("""
-<div class="section-header">
-    <span class="section-badge">STEP 1</span>
-    <span class="section-title">📤 Upload Proposal Sponsorship</span>
-</div>
-""", unsafe_allow_html=True)
+    **Tahap 1 — Penilaian Rubrikasi**
+    Proposal dinilai dari 5 variabel keyword.
+    Skor < 3 → ❌ **Langsung ditolak**, AI tidak dipanggil.
 
+    **Tahap 2 — Verifikasi AI**
+    Hanya proposal yang lolos rubric (skor ≥ 3)
+    yang dikirim ke IndoBERT / SVM untuk keputusan final.
+
+    **Label Final:**
+    - ✅ Layak = Rubric lolos **+** AI setuju
+    - ⚠️ Perlu Review = Rubric lolos, tapi AI ragu
+    - ❌ Tidak Layak = Rubric gagal (AI tidak dijalankan)
+    """)
+
+# ── Main Content ──────────────────────────────────────
+st.subheader("📤 Upload Proposal Sponsorship")
 uploaded_file = st.file_uploader(
     "Upload file PDF proposal sponsorship",
     type=["pdf"],
-    help="Format: PDF · Maks 50MB · Halaman dibaca otomatis (pdfPlumber + OCR fallback)"
+    help="Format PDF, maksimal 50MB"
 )
 
-if uploaded_file is None:
-    # ── Landing Info ──────────────────────────────────
-    st.markdown("""
-    <div style="background:#ffffff; border:1px solid #e8ecf0; border-radius:14px;
-                padding:1.4rem 1.6rem; margin-top:0.5rem; margin-bottom:1.5rem; box-shadow:0 1px 6px rgba(0,0,0,0.04);">
-        <div style="font-size:0.82rem; color:#64748b; margin-bottom:0.8rem;">
-            📎 Upload file PDF proposal Anda di atas untuk memulai analisis otomatis.
-        </div>
-        <div>
-            <span class="info-pill">📄 Format: PDF</span>
-            <span class="info-pill">🔍 pdfPlumber + OCR</span>
-            <span class="info-pill">⭐ Model Utama + 🔬 Pembanding</span>
-            <span class="info-pill">⚡ 2 Tahap Penilaian</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+if uploaded_file is not None:
 
-    st.markdown("""
-    <div class="section-header" style="margin-top:1.5rem;">
-        <span class="section-title">📋 Cara Kerja Sistem</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3)
-    cards = [
-        ("01", "📋", "Penilaian Rubrikasi",
-         "5 variabel keyword diperiksa secara otomatis. Skor < 3 dari 5 → proposal langsung ditolak."),
-        ("02", "🤖", "Verifikasi AI",
-         "Proposal yang lolos kelengkapan dinilai oleh dua model AI. Keputusan final ditentukan oleh model terbaik."),
-        ("03", "⚖️", "Keputusan Final",
-         "Layak jika rubrik ✅ dan AI ✅. Konflik antara keduanya → rekomendasi review manual."),
-    ]
-    for col, (num, icon, title, desc) in zip([col1, col2, col3], cards):
-        with col:
-            st.markdown(f"""
-            <div class="stage-card">
-                <div class="stage-num">{num}</div>
-                <div class="stage-icon">{icon}</div>
-                <div class="stage-title">{title}</div>
-                <div class="stage-desc">{desc}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="section-header" style="margin-top:2rem;">
-        <span class="section-title">📊 Variabel Penilaian Rubrikasi</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    rubric_cols = st.columns(5)
-    rubric_info = [
-        ("📡", "Exposure", "Jangkauan audiens & media publikasi"),
-        ("🎯", "Relevansi", "Kesesuaian acara dengan profil sponsor"),
-        ("🎁", "Benefit", "Keuntungan konkret bagi sponsor"),
-        ("💰", "Anggaran", "Kejelasan nominal & rincian biaya"),
-        ("🏛️", "Kredibilitas", "Profesionalitas penyelenggara"),
-    ]
-    for col, (icon, name, desc) in zip(rubric_cols, rubric_info):
-        with col:
-            st.markdown(f"""
-            <div style="background:#ffffff; border:1px solid #e8ecf0; border-radius:12px;
-                        padding:1rem 0.8rem; text-align:center;">
-                <div style="font-size:1.6rem;">{icon}</div>
-                <div style="font-weight:700; font-size:0.85rem; color:#1e293b; margin:0.4rem 0 0.3rem;">{name}</div>
-                <div style="font-size:0.75rem; color:#64748b; line-height:1.4;">{desc}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-else:
-    # ── File Uploaded ──────────────────────────────────
     st.success(f"✅ File berhasil diupload: **{uploaded_file.name}**")
 
     with st.spinner("🔍 Mengekstrak teks dari PDF..."):
         full_text, method = extract_text(uploaded_file)
 
-    # File info row
-    method_label = {"pdfplumber": "PDFPLUMBER", "ocr": "OCR (Tesseract)", "failed": "GAGAL"}
-    col_m, col_w, col_c = st.columns(3)
-    col_m.metric("🔧 Metode Ekstraksi", method_label.get(method, method.upper()))
-    col_w.metric("📝 Jumlah Kata",      f"{len(full_text.split()):,}")
-    col_c.metric("🔢 Jumlah Karakter",  f"{len(full_text):,}")
-
-    with st.expander("👁️ Preview Teks Hasil Ekstraksi", expanded=False):
-        if full_text:
-            preview = full_text[:2000] + "\n\n…[teks dipotong]" if len(full_text) > 2000 else full_text
-            st.text_area("Teks Proposal:", preview, height=220,
-                         help="Hanya preview — teks lengkap digunakan untuk analisis")
-        else:
-            st.error("Teks tidak dapat diekstrak dari file ini.")
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        with st.expander("👁️ Preview Teks Hasil Ekstraksi", expanded=False):
+            if full_text:
+                preview = full_text[:2000] + "..." if len(full_text) > 2000 else full_text
+                st.text_area("Teks Proposal:", preview, height=250)
+            else:
+                st.error("Teks tidak dapat diekstrak dari file ini.")
+    with col2:
+        method_label = {"pdfplumber": "PDFPLUMBER", "ocr": "OCR", "failed": "GAGAL"}
+        st.metric("Metode Ekstraksi", method_label.get(method, method.upper()))
+        st.metric("Jumlah Kata",      len(full_text.split()))
+        st.metric("Jumlah Karakter",  len(full_text))
 
     if not full_text or len(full_text.split()) < 30:
-        st.error("⚠️ Teks proposal terlalu sedikit untuk dianalisis. Coba upload file PDF yang lebih lengkap.")
+        st.error("⚠️ Teks proposal terlalu sedikit untuk dianalisis. "
+                 "Coba upload file PDF yang lebih lengkap.")
         st.stop()
 
     st.divider()
 
-    if st.button("🚀 Mulai Analisis Proposal", type="primary", use_container_width=True):
+    if st.button("🚀 Analisis Proposal", type="primary", use_container_width=True):
+        st.divider()
+        st.subheader("📊 Hasil Analisis")
 
-        st.markdown("""
-        <div class="section-header" style="margin-top:1rem;">
-            <span class="section-badge">TAHAP 1</span>
-            <span class="section-title">📋 Penilaian Rubrikasi</span>
-        </div>
-        """, unsafe_allow_html=True)
+        # ════════════════════════════════════════════
+        # TAHAP 1: FILTER RUBRIC
+        # ════════════════════════════════════════════
+        st.markdown("### Tahap 1 — Penilaian Rubrikasi")
 
-        with st.spinner("📋 Menghitung skor rubrikasi..."):
+        with st.spinner("📋 Menghitung skor penilaian rubrikasi..."):
             rubric_result = score_rubric(full_text)
 
-        # ── Variabel Cards ──
+        # Tampilkan kartu skor per variabel
         cols = st.columns(5)
         for i, (var, score) in enumerate(rubric_result["scores"].items()):
             with cols[i]:
-                css_class = "pass" if score == 1 else "fail"
-                status    = "✓" if score == 1 else "✗"
+                color  = "#d4edda" if score == 1 else "#f8d7da"
+                status = "✓" if score == 1 else "✗"
                 st.markdown(f"""
-                <div class="var-card {css_class}">
+                <div style="background:{color};padding:12px;border-radius:10px;text-align:center;">
                     <div style="font-size:1.5rem">{VAR_ICONS[var]}</div>
-                    <div class="var-name">{var}</div>
-                    <div class="var-status {css_class}">{status}</div>
-                    <div class="var-score">Skor: {score}/1</div>
+                    <div style="font-weight:bold;font-size:0.9rem">{var}</div>
+                    <div style="font-size:1.8rem;font-weight:800">{status}</div>
+                    <div style="font-size:0.8rem">Skor: {score}/1</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -588,132 +405,112 @@ else:
         terpenuhi       = [v for v, s in rubric_result["scores"].items() if s == 1]
         tidak_terpenuhi = [v for v, s in rubric_result["scores"].items() if s == 0]
 
-        rubric_class = "pass" if rubric_result["passed"] else "fail"
+        rubric_color = "#d4edda" if rubric_result["passed"] else "#f8d7da"
         rubric_icon  = "✅" if rubric_result["passed"] else "❌"
         rubric_text  = (
-            f"Kelengkapan Proposal: Lolos ({rubric_result['total']} dari 5 aspek terpenuhi) — lanjut ke Penilaian AI"
+            f"Penilaian Rubrikasi lolos ({rubric_result['total']}/5 variabel terpenuhi) "
+            f"— lanjut ke verifikasi AI"
             if rubric_result["passed"] else
-            f"Kelengkapan Proposal: Tidak Memenuhi Syarat ({rubric_result['total']} dari 5 aspek terpenuhi) — proposal tidak dapat dilanjutkan"
+            f"Penilaian Rubrikasi gagal ({rubric_result['total']}/5 variabel terpenuhi) "
+            f"— proposal ditolak tanpa perlu AI"
         )
-        st.markdown(f"""
-        <div class="rubric-summary {rubric_class}">
-            <span style="font-size:1.3rem">{rubric_icon}</span>
-            <span>{rubric_text}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="background:{rubric_color};padding:0.8rem 1.2rem;'
+            f'border-radius:10px;font-weight:bold;font-size:1rem;">'
+            f'{rubric_icon} {rubric_text}</div>',
+            unsafe_allow_html=True
+        )
 
         with st.expander("🔍 Detail Bukti per Variabel (Penilaian Rubrikasi)"):
             for var, evid in rubric_result["evidences"].items():
                 icon     = "✅" if rubric_result["scores"][var] == 1 else "❌"
                 evid_str = str(evid) if evid else "Tidak ditemukan indikator"
-                st.markdown(f"{icon} **{var}**: `{evid_str}`")
+                st.markdown(f"{icon} **{var}**: {evid_str}")
 
         # ════════════════════════════════════════════
-        # TAHAP 2: VERIFIKASI AI
+        # TAHAP 2: VERIFIKASI AI  (hanya jika rubric lolos)
         # ════════════════════════════════════════════
-        st.markdown("""
-        <div class="section-header" style="margin-top:1.5rem;">
-            <span class="section-badge">TAHAP 2</span>
-            <span class="section-title">🤖 Penilaian AI</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.divider()
+        st.markdown("### Tahap 2 — Verifikasi AI")
 
+        # Inisialisasi default
+        bert_result  = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
         svm_label    = None
         svm_conf     = 0
-        bert_result  = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
         ai_available = False
 
         if not rubric_result["passed"]:
-            st.markdown("""
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;
-                        padding:1.2rem 1.4rem; color:#64748b; font-size:0.9rem;">
-                ⏭️ <b style="color:#475569;">Penilaian AI dilewati</b> — Proposal tidak memenuhi 
-                syarat kelengkapan dasar. Penilaian AI tidak perlu dijalankan.
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                '<div class="stage-skip" style="border:2px solid #adb5bd;border-radius:12px;'
+                'padding:1rem;background:#f8f9fa;opacity:0.7;">'
+                '⏭️ <b>Penilaian AI tidak dijalankan</b> — proposal sudah gugur di Tahap 1 (Penilaian Rubrikasi gagal).'
+                '</div>',
+                unsafe_allow_html=True
+            )
         else:
-            col_svm, col_bert = st.columns(2)
+            svm_col, bert_col = st.columns(2)
 
             # ── Model Utama: SVM (penentu keputusan) ──
-            with col_svm:
-                st.markdown('<div class="model-card">', unsafe_allow_html=True)
-                st.markdown('''<div class="model-name">⭐ Model Utama <span style="font-size:0.65rem;color:#4f46e5;background:#ede9fe;padding:1px 6px;border-radius:4px;margin-left:4px;">PENENTU KEPUTUSAN</span></div>''', unsafe_allow_html=True)
-                with st.spinner("Menilai proposal..."):
+            with svm_col:
+                st.markdown("**⭐ Model Utama** <span style='font-size:0.72rem;color:#6d28d9;background:#ede9fe;padding:1px 6px;border-radius:4px;margin-left:4px;'>PENENTU KEPUTUSAN</span>", unsafe_allow_html=True)
+                with st.spinner("⚙️ Menilai proposal..."):
                     svm_model = load_svm_model()
                     if svm_model:
                         ai_available = True
                         svm_label    = svm_model.predict([full_text])[0]
                         svm_prob     = svm_model.predict_proba([full_text])[0]
                         svm_conf     = int(max(svm_prob) * 100)
-                        is_layak     = svm_label == "Layak"
-                        color        = "#16a34a" if is_layak else "#dc2626"
-                        verdict_text = "Direkomendasikan" if is_layak else "Tidak Direkomendasikan"
-                        verdict_icon = "✅" if is_layak else "❌"
-                        st.markdown(f"""
-                        <div style="font-size:1.5rem; font-weight:800; color:{color};
-                                    margin:0.5rem 0 0.6rem; letter-spacing:-0.02em;">
-                            {verdict_icon} {verdict_text}
-                        </div>
-                        """, unsafe_allow_html=True)
+                        svm_verdict  = "Direkomendasikan" if svm_label == "Layak" else "Tidak Direkomendasikan"
+                        badge        = "layak-badge" if svm_label == "Layak" else "tidak-layak-badge"
+                        st.markdown(f'<span class="{badge}">{svm_verdict}</span>', unsafe_allow_html=True)
                         st.progress(svm_conf)
-                        st.caption(f"Tingkat Keyakinan: **{svm_conf}%**")
+                        st.caption(f"Tingkat Keyakinan: {svm_conf}%")
                     else:
-                        st.warning(f"⚠️ Model utama tidak tersedia.")
-                st.markdown('</div>', unsafe_allow_html=True)
+                        st.warning(f"⚠️ Model Utama tidak tersedia.\nPastikan `svm_model.pkl` diupload ke `{HF_REPO_ID}`")
 
-            # ── Model Pembanding: IndoBERT (hanya informasi) ──
-            with col_bert:
-                st.markdown('<div class="model-card">', unsafe_allow_html=True)
-                st.markdown('''<div class="model-name">🔬 Model Pembanding <span style="font-size:0.65rem;color:#64748b;background:#f1f5f9;padding:1px 6px;border-radius:4px;margin-left:4px;">REFERENSI</span></div>''', unsafe_allow_html=True)
-                with st.spinner("Menilai proposal (pembanding)..."):
+            # ── Model Pembanding: IndoBERT (referensi) ──
+            with bert_col:
+                st.markdown("**🔬 Model Pembanding** <span style='font-size:0.72rem;color:#6c757d;background:#f8f9fa;border:1px solid #dee2e6;padding:1px 6px;border-radius:4px;margin-left:4px;'>REFERENSI</span>", unsafe_allow_html=True)
+                with st.spinner("🧠 Menilai proposal (pembanding)..."):
                     tokenizer, bert_model = load_bert_model()
                     bert_result           = predict_bert(full_text, tokenizer, bert_model)
                     if bert_result["label"]:
-                        is_layak_bert = bert_result["label"] == "Layak"
-                        color_bert    = "#16a34a" if is_layak_bert else "#dc2626"
-                        verdict_bert  = "Direkomendasikan" if is_layak_bert else "Tidak Direkomendasikan"
-                        icon_bert     = "✅" if is_layak_bert else "❌"
-                        conf_bert     = int(bert_result["confidence"] * 100)
-                        st.markdown(f"""
-                        <div style="font-size:1.5rem; font-weight:800; color:{color_bert};
-                                    margin:0.5rem 0 0.6rem; letter-spacing:-0.02em;">
-                            {icon_bert} {verdict_bert}
-                        </div>
-                        """, unsafe_allow_html=True)
-                        st.progress(conf_bert)
-                        st.caption(f"Tingkat Keyakinan: **{conf_bert}%**")
+                        bert_verdict = "Direkomendasikan" if bert_result["label"] == "Layak" else "Tidak Direkomendasikan"
+                        badge        = "layak-badge" if bert_result["label"] == "Layak" else "tidak-layak-badge"
+                        st.markdown(f'<span class="{badge}">{bert_verdict}</span>', unsafe_allow_html=True)
+                        conf = int(bert_result["confidence"] * 100)
+                        st.progress(conf)
+                        st.caption(f"Tingkat Keyakinan: {conf}%")
                     else:
                         st.info("Model pembanding tidak tersedia.")
-                st.markdown('</div>', unsafe_allow_html=True)
 
             if ai_available and bert_result["label"] and svm_label != bert_result["label"]:
-                st.markdown("""
-                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px;
-                            padding:0.8rem 1.1rem; font-size:0.82rem; color:#b45309; margin-top:0.5rem;">
-                    ℹ️ Kedua model memberikan hasil berbeda. <b>Keputusan final mengikuti Model Utama</b> 
-                    karena terbukti lebih akurat berdasarkan evaluasi.
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    '<div class="review-badge" style="display:block;text-align:center;padding:0.6rem 1rem;font-size:0.88rem;margin-top:0.5rem;">'
+                    'ℹ️ Kedua model berbeda pendapat — Keputusan final mengikuti Model Utama'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
 
         # ════════════════════════════════════════════
         # KEPUTUSAN FINAL
         # ════════════════════════════════════════════
-        st.markdown("""
-        <div class="section-header" style="margin-top:1.5rem;">
-            <span class="section-badge">HASIL</span>
-            <span class="section-title">⚖️ Hasil Penilaian Akhir</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.divider()
+        st.markdown("### ⚖️ Keputusan Final")
 
-        # Logika keputusan
+        # --- Logika keputusan 2 tahap ---
+        # Rubric gagal → langsung Tidak Direkomendasikan
         if not rubric_result["passed"]:
-            final_label  = "Tidak Direkomendasikan"
-            final_reason = "rubric_failed"
+            final_label   = "Tidak Direkomendasikan"
+            final_reason  = "rubric_failed"
+
+        # Rubric lolos, tapi tidak ada model AI → fallback ke rubric
         elif not ai_available:
-            final_label  = "Direkomendasikan"
-            final_reason = "rubric_only"
+            final_label   = "Direkomendasikan"
+            final_reason  = "rubric_only"
+
+        # Rubric lolos + ada hasil AI → SVM (Model Utama) yang menentukan
         else:
-            # Keputusan final selalu mengikuti Model Utama (SVM)
             if svm_label == "Layak":
                 final_label  = "Direkomendasikan"
                 final_reason = "rubric_pass_ai_agree"
@@ -721,64 +518,86 @@ else:
                 final_label  = "Perlu Ditinjau Ulang"
                 final_reason = "rubric_pass_ai_disagree"
 
-        # Decision display config
+        # ── Tampilan badge final ──────────────────────
         if final_reason == "rubric_pass_ai_agree":
-            d_class, d_lclass, d_icon, d_label = "layak", "layak", "✅", "DIREKOMENDASIKAN"
-            d_sub = "Proposal Anda memenuhi semua kriteria dan telah diverifikasi oleh sistem AI."
+            badge_class = "layak-badge"
+            label_text  = "✅ DIREKOMENDASIKAN"
         elif final_reason == "rubric_only":
-            d_class, d_lclass, d_icon, d_label = "layak", "layak", "✅", "DIREKOMENDASIKAN"
-            d_sub = "Proposal Anda lolos penilaian kelengkapan. Verifikasi AI tidak tersedia saat ini."
+            badge_class = "layak-badge"
+            label_text  = "✅ DIREKOMENDASIKAN"
         elif final_reason == "rubric_pass_ai_disagree":
-            d_class, d_lclass, d_icon, d_label = "review", "review", "⚠️", "PERLU DITINJAU ULANG"
-            d_sub = "Proposal lolos kelengkapan, namun AI menemukan kekurangan pada isi proposal. Disarankan untuk diperbaiki."
-        else:
-            d_class, d_lclass, d_icon, d_label = "tidak-layak", "tidak-layak", "❌", "TIDAK DIREKOMENDASIKAN"
-            d_sub = f"Hanya {rubric_result['total']}/5 variabel rubrikasi terpenuhi (minimum: {RUBRIC_PASS_THRESHOLD})."
+            badge_class = "review-badge"
+            label_text  = "⚠️ PERLU DITINJAU ULANG"
+        else:  # rubric_failed
+            badge_class = "tidak-layak-badge"
+            label_text  = "❌ TIDAK DIREKOMENDASIKAN"
 
-        col_dec, col_detail = st.columns([1, 2])
-
+        col_dec, col_reason = st.columns([1, 2])
         with col_dec:
-            st.markdown(f"""
-            <div class="decision-card {d_class}">
-                <div style="font-size:2.5rem; margin-bottom:0.4rem;">{d_icon}</div>
-                <div class="decision-label {d_lclass}">{d_label}</div>
-                <div class="decision-sub">{d_sub}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(
+                f'<div style="text-align:center"><span class="{badge_class}">'
+                f'{label_text}</span></div>',
+                unsafe_allow_html=True
+            )
 
-        with col_detail:
-            st.markdown("**📋 Penjelasan Hasil**")
+        with col_reason:
+            st.markdown("**📋 Penjelasan Hasil:**")
 
             if final_reason == "rubric_failed":
-                st.error(f"❌ Proposal tidak memenuhi syarat kelengkapan: hanya {rubric_result['total']} dari 5 aspek terpenuhi (minimal 3 aspek).")
-                st.info("ℹ️ Penilaian AI tidak dijalankan karena proposal belum memenuhi syarat kelengkapan dasar.")
+                st.error(
+                    f"❌ Penilaian Rubrikasi gagal: hanya {rubric_result['total']} dari 5 aspek terpenuhi "
+                    f"(minimum {RUBRIC_PASS_THRESHOLD}).\n\n"
+                    f"Penilaian AI tidak dijalankan karena proposal belum memenuhi syarat dasar."
+                )
+
             elif final_reason == "rubric_only":
-                st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
-                st.info("ℹ️ Sistem AI tidak tersedia — keputusan berdasarkan kelengkapan proposal saja.")
+                st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
+                st.info("ℹ️ Model AI tidak tersedia — keputusan berdasarkan rubrikasi saja.")
+
             elif final_reason == "rubric_pass_ai_agree":
-                st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
-                st.success("✅ Sistem AI mengkonfirmasi proposal ini layak mendapatkan sponsorship.")
-                st.info("💡 Proposal Anda sudah lengkap dan dinilai baik oleh sistem kami. Silakan ajukan ke pihak sponsor.")
+                st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
+                st.success("✅ Model Utama mengkonfirmasi proposal ini layak mendapatkan sponsorship.")
+                st.info("💡 Proposal sudah lengkap dan dinilai baik. Silakan ajukan ke pihak sponsor.")
+
             elif final_reason == "rubric_pass_ai_disagree":
-                st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
-                st.warning("⚠️ Sistem AI menilai isi proposal masih kurang meyakinkan.\n\nProposal sudah cukup lengkap secara struktur, namun perlu diperkuat pada bagian isi dan penjelasan. Kami sarankan untuk merevisi sebelum diajukan.")
+                st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
+                st.warning(
+                    "⚠️ Model Utama menilai isi proposal masih kurang meyakinkan.\n\n"
+                    "Proposal sudah cukup lengkap secara struktur, namun perlu diperkuat pada bagian isi. "
+                    "Kami sarankan untuk merevisi sebelum diajukan."
+                )
 
             if terpenuhi:
-                st.success(f"✅ Aspek yang sudah terpenuhi: {', '.join(terpenuhi)}")
+                st.success(f"✅ Aspek terpenuhi: {', '.join(terpenuhi)}")
             if tidak_terpenuhi:
                 st.error(f"❌ Aspek yang perlu dilengkapi: {', '.join(tidak_terpenuhi)}")
 
-        # ── Saran Perbaikan ──
         if tidak_terpenuhi:
-            st.markdown("""
-            <div class="section-header" style="margin-top:1rem;">
-                <span class="section-title">💡 Saran Perbaikan Proposal</span>
-            </div>
-            """, unsafe_allow_html=True)
-            for var in tidak_terpenuhi:
-                st.markdown(f"""
-                <div class="saran-box">
-                    <div class="saran-var">{VAR_ICONS.get(var,'')} {var}</div>
-                    {SARAN.get(var, '')}
-                </div>
-                """, unsafe_allow_html=True)
+            with st.expander("💡 Saran Perbaikan Proposal"):
+                for var in tidak_terpenuhi:
+                    st.markdown(f"**{var}:** {SARAN.get(var, '')}")
+
+else:
+    # ── Landing Page ──────────────────────────────────
+    st.info("👆 Upload file PDF proposal sponsorship untuk memulai analisis.")
+
+    st.markdown("#### Cara Kerja Penilaian 2 Tahap")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        <div class="metric-card">
+            <h2>📋</h2><b>Tahap 1: Penilaian Rubrikasi</b>
+            <p>5 variabel diperiksa otomatis.<br>Skor &lt; 3 → langsung ditolak.</p>
+        </div>""", unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div class="metric-card">
+            <h2>🤖</h2><b>Tahap 2: Penilaian AI</b>
+            <p>Dua model AI dijalankan otomatis.<br>Model Utama menentukan keputusan.</p>
+        </div>""", unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+        <div class="metric-card">
+            <h2>⚖️</h2><b>Hasil Akhir</b>
+            <p>Direkomendasikan jika rubrikasi ✅ <b>dan</b> AI ✅.<br>Konflik → perlu ditinjau ulang.</p>
+        </div>""", unsafe_allow_html=True)
