@@ -44,19 +44,8 @@ st.markdown("""
         font-size: 1.4rem; font-weight: 700;
         display: inline-block; margin: 1rem 0;
     }
-    .review-badge {
-        background: #fff3cd; color: #856404;
-        padding: 0.8rem 2rem; border-radius: 25px;
-        font-size: 1.4rem; font-weight: 700;
-        display: inline-block; margin: 1rem 0;
-    }
-    .stage-box {
-        border: 2px solid #dee2e6; border-radius: 12px;
-        padding: 1rem 1.2rem; margin-bottom: 1rem;
-    }
-    .stage-pass  { border-color: #2ecc71; background: #f0fff4; }
-    .stage-fail  { border-color: #e74c3c; background: #fff5f5; }
-    .stage-skip  { border-color: #adb5bd; background: #f8f9fa; opacity: 0.6; }
+    .status-ok  { color: #2ecc71; font-weight: bold; }
+    .status-err { color: #e74c3c; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -66,11 +55,9 @@ st.markdown('<p class="subtitle">Sistem Pendukung Keputusan Penilaian Kelayakan 
 st.divider()
 
 # ── Konstanta ─────────────────────────────────────────
+# Model dimuat dari HuggingFace Hub
 HF_REPO_ID    = "calpycbara/sponsorsmart-indobert"
 OCR_THRESHOLD = 50
-
-# Rubric gate threshold — proposal harus melewati ini sebelum ke AI
-RUBRIC_PASS_THRESHOLD = 3   # dari 5
 
 # ── HuggingFace Token ────────────────────────────────
 HF_TOKEN = st.secrets.get("HUGGINGFACE_TOKEN", "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")
@@ -135,6 +122,10 @@ VAR_ICONS = {
 
 # ── Custom SVM Pipeline ───────────────────────────────
 class ThresholdSVMPipeline:
+    """
+    SVM Pipeline dengan threshold yang dapat diatur.
+    Harus ada di sini agar pickle.load() bisa mengenali class-nya.
+    """
     def __init__(self, tfidf, svm, threshold=0.6):
         self.tfidf     = tfidf
         self.svm       = svm
@@ -153,15 +144,23 @@ class ThresholdSVMPipeline:
 # ── Fungsi Load Model ─────────────────────────────────
 @st.cache_resource
 def load_bert_model():
+    """
+    Load IndoBERT dari HuggingFace Hub.
+    Returns (tokenizer, model) atau (None, None) jika gagal.
+    """
     try:
         tokenizer = AutoTokenizer.from_pretrained(HF_REPO_ID)
         model     = AutoModelForSequenceClassification.from_pretrained(HF_REPO_ID)
         model.eval()
         return tokenizer, model
-    except Exception:
+    except Exception as e:
         return None, None
 
 def load_svm_model():
+    """
+    Load SVM model dari HuggingFace Hub.
+    Returns model pipeline atau None jika gagal.
+    """
     try:
         from huggingface_hub import hf_hub_download
         svm_path = hf_hub_download(
@@ -172,11 +171,17 @@ def load_svm_model():
         with open(svm_path, "rb") as f:
             return pickle.load(f)
     except Exception as e:
+        import traceback
         print(f"[SVM Load Error] {e}")
+        print(traceback.format_exc())
         return None
 
 # ── Fungsi Ekstraksi PDF ──────────────────────────────
 def extract_text(uploaded_file) -> tuple:
+    """
+    Ekstrak teks dari PDF yang diupload.
+    Strategi: pdfplumber dulu, fallback ke OCR jika teks < threshold.
+    """
     import tempfile
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(uploaded_file.read())
@@ -185,6 +190,7 @@ def extract_text(uploaded_file) -> tuple:
     full_text = ""
     method    = "pdfplumber"
 
+    # Tahap 1: pdfplumber
     try:
         with pdfplumber.open(tmp_path) as pdf:
             for page in pdf.pages[:10]:
@@ -194,6 +200,7 @@ def extract_text(uploaded_file) -> tuple:
     except:
         pass
 
+    # Tahap 2: OCR fallback
     if len(full_text.strip()) < OCR_THRESHOLD:
         method = "ocr"
         try:
@@ -213,11 +220,7 @@ def extract_text(uploaded_file) -> tuple:
 
 # ── Fungsi Rubric Scoring ─────────────────────────────
 def score_rubric(text: str) -> dict:
-    """
-    Tahap 1: Filter rubric berbasis keyword.
-    Proposal yang tidak lolos (total < RUBRIC_PASS_THRESHOLD) langsung
-    ditolak — AI tidak akan dipanggil.
-    """
+    """Hitung skor 5 variabel rubric berdasarkan keyword matching."""
     text_lower = text.lower()
     scores, evidences = {}, {}
 
@@ -231,19 +234,17 @@ def score_rubric(text: str) -> dict:
         scores[var]    = 1 if len(unique_matched) >= THRESHOLDS[var] else 0
         evidences[var] = unique_matched[:3] if unique_matched else []
 
-    total    = sum(scores.values())
-    passed   = total >= RUBRIC_PASS_THRESHOLD
-
+    total = sum(scores.values())
     return {
-        "scores"  : scores,
-        "evidences": evidences,
-        "total"   : total,
-        "passed"  : passed,          # True = lolos filter, lanjut ke AI
+        "scores"         : scores,
+        "evidences"      : evidences,
+        "total"          : total,
+        "heuristic_label": "Layak" if total >= 3 else "Tidak Layak"
     }
 
 # ── Fungsi Prediksi IndoBERT ──────────────────────────
 def predict_bert(text: str, tokenizer, model) -> dict:
-    """Tahap 2: AI hanya dipanggil jika rubric sudah lolos."""
+    """Prediksi kelayakan menggunakan IndoBERT."""
     if tokenizer is None or model is None:
         return {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
     inputs = tokenizer(
@@ -265,6 +266,7 @@ def predict_bert(text: str, tokenizer, model) -> dict:
 
 # ── Fungsi Chart Skor ─────────────────────────────────
 def render_score_chart(scores: dict):
+    """Bar chart horizontal untuk skor tiap variabel."""
     vars_  = list(scores.keys())
     vals   = list(scores.values())
     colors = ["#2ecc71" if v == 1 else "#e74c3c" for v in vals]
@@ -273,7 +275,7 @@ def render_score_chart(scores: dict):
     bars = ax.barh(vars_, vals, color=colors, edgecolor="white", height=0.5)
     ax.set_xlim(0, 1.5)
     ax.set_xlabel("Skor (0 = Tidak Terpenuhi, 1 = Terpenuhi)")
-    ax.set_title("Skor Tiap Variabel — Penilaian Rubrikasi")
+    ax.set_title("Skor Tiap Variabel Rubric")
 
     for bar, val in zip(bars, vals):
         lbl = "✓ Terpenuhi" if val == 1 else "✗ Tidak"
@@ -289,40 +291,51 @@ def render_score_chart(scores: dict):
 # ── Sidebar ───────────────────────────────────────────
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/target.png", width=80)
-    st.title("ℹ️ Info Sistem")
+    st.title("⚙️ Pengaturan")
+
+    model_choice = st.radio(
+        "Pilih Model Prediksi:",
+        ["IndoBERT (Rekomendasi)", "SVM + TF-IDF", "Keduanya (Bandingkan)"]
+    )
 
     st.divider()
+
+    # ── Status Model ──────────────────────────────────
     st.markdown("### 🔌 Status Model")
 
     with st.spinner("Cek koneksi model..."):
         tokenizer_check, model_check = load_bert_model()
         svm_check                    = load_svm_model()
 
-    st.markdown("🟢 **Model Utama** — Siap" if svm_check else "🔴 **Model Utama** — Tidak ditemukan")
-    st.markdown("🟢 **Model Pembanding** — Siap" if tokenizer_check else "🔴 **Model Pembanding** — Tidak ditemukan")
+    if tokenizer_check is not None:
+        st.markdown("🟢 **IndoBERT** — Terhubung")
+    else:
+        st.markdown("🔴 **IndoBERT** — Tidak ditemukan")
+        st.caption(f"Repo: `{HF_REPO_ID}`")
+        st.caption("Pastikan model sudah diupload ke HuggingFace.")
+
+    if svm_check is not None:
+        st.markdown("🟢 **SVM** — Terhubung")
+    else:
+        st.markdown("🔴 **SVM** — Tidak ditemukan")
+        st.caption("File `svm_model.pkl` belum ada di HuggingFace repo.")
 
     if tokenizer_check is None and svm_check is None:
-        st.warning("⚠️ Semua model offline.\nHanya Penilaian Rubrikasi yang aktif.")
+        st.warning("⚠️ Semua model offline.\nSistem akan pakai **Rubric Scoring** saja.")
 
     st.divider()
-    st.markdown("### 🔁 Alur Penilaian")
+    st.markdown("### 📖 Tentang SponsorSmart AI")
     st.markdown("""
-    Sistem ini bekerja dalam **2 tahap berurutan**:
+    Sistem ini menilai kelayakan proposal sponsorship
+    berdasarkan **5 variabel rubric**:
+    - 📡 **Exposure** — Jangkauan audiens
+    - 🎯 **Relevansi** — Kesesuaian dengan sponsor
+    - 🎁 **Benefit** — Keuntungan sponsor
+    - 💰 **Anggaran** — Kejelasan biaya
+    - 🏛️ **Kredibilitas** — Profesionalitas penyelenggara
 
-    **Tahap 1 — Penilaian Rubrikasi**
-    Proposal dinilai dari 5 aspek keyword.
-    Skor < 3 → ❌ **Langsung ditolak**, AI tidak dipanggil.
-
-    **Tahap 2 — Penilaian AI**
-    Dua model AI dijalankan otomatis.
-    Model Utama menentukan keputusan final.
-
-    **Hasil Akhir:**
-    - ✅ Direkomendasikan = Rubrikasi ✓ + AI ✓
-    - ⚠️ Perlu Ditinjau Ulang = Rubrikasi ✓, AI ragu
-    - ❌ Tidak Direkomendasikan = Rubrikasi gagal
+    **Label:** Total Skor ≥ 3 → **Layak**
     """)
-
 
 # ── Main Content ──────────────────────────────────────
 st.subheader("📤 Upload Proposal Sponsorship")
@@ -334,6 +347,7 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
+    # ── Ekstraksi Teks ────────────────────────────────
     st.success(f"✅ File berhasil diupload: **{uploaded_file.name}**")
 
     with st.spinner("🔍 Mengekstrak teks dari PDF..."):
@@ -364,15 +378,11 @@ if uploaded_file is not None:
         st.divider()
         st.subheader("📊 Hasil Analisis")
 
-        # ════════════════════════════════════════════
-        # TAHAP 1: FILTER RUBRIC
-        # ════════════════════════════════════════════
-        st.markdown("### Tahap 1 — Penilaian Rubrikasi")
-
-        with st.spinner("📋 Menghitung skor penilaian rubrikasi..."):
+        # ── Rubric Scoring ────────────────────────────
+        with st.spinner("📋 Menghitung skor rubric..."):
             rubric_result = score_rubric(full_text)
 
-        # Tampilkan kartu skor per variabel
+        st.markdown("#### 📋 Skor Tiap Variabel Rubric")
         cols = st.columns(5)
         for i, (var, score) in enumerate(rubric_result["scores"].items()):
             with cols[i]:
@@ -388,133 +398,107 @@ if uploaded_file is not None:
                 """, unsafe_allow_html=True)
 
         st.pyplot(render_score_chart(rubric_result["scores"]))
+        st.markdown(f"**Total Skor Rubric: {rubric_result['total']}/5**")
 
-        terpenuhi       = [v for v, s in rubric_result["scores"].items() if s == 1]
-        tidak_terpenuhi = [v for v, s in rubric_result["scores"].items() if s == 0]
-
-        rubric_color = "#d4edda" if rubric_result["passed"] else "#f8d7da"
-        rubric_icon  = "✅" if rubric_result["passed"] else "❌"
-        rubric_text  = (
-            f"Penilaian Rubrikasi lolos ({rubric_result['total']}/5 variabel terpenuhi) "
-            f"— lanjut ke verifikasi AI"
-            if rubric_result["passed"] else
-            f"Penilaian Rubrikasi gagal ({rubric_result['total']}/5 variabel terpenuhi) "
-            f"— proposal ditolak tanpa perlu AI"
-        )
-        st.markdown(
-            f'<div style="background:{rubric_color};padding:0.8rem 1.2rem;'
-            f'border-radius:10px;font-weight:bold;font-size:1rem;">'
-            f'{rubric_icon} {rubric_text}</div>',
-            unsafe_allow_html=True
-        )
-
-        with st.expander("🔍 Detail Bukti per Variabel (Penilaian Rubrikasi)"):
+        with st.expander("🔍 Detail Bukti per Variabel"):
             for var, evid in rubric_result["evidences"].items():
                 icon     = "✅" if rubric_result["scores"][var] == 1 else "❌"
                 evid_str = str(evid) if evid else "Tidak ditemukan indikator"
                 st.markdown(f"{icon} **{var}**: {evid_str}")
 
-        # ════════════════════════════════════════════
-        # TAHAP 2: VERIFIKASI AI  (hanya jika rubric lolos)
-        # ════════════════════════════════════════════
         st.divider()
-        st.markdown("### Tahap 2 — Verifikasi AI")
 
-        # Inisialisasi default
+        # ── Prediksi Model ────────────────────────────
+        st.markdown("#### 🤖 Prediksi Model")
+
+        # ✅ Inisialisasi default — cegah NameError
         bert_result = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
         svm_label   = None
         svm_conf    = 0
-        ai_available = False
 
-        if not rubric_result["passed"]:
-            # Rubric gagal → tampilkan info, skip AI
-            st.markdown(
-                '<div class="stage-skip" style="border:2px solid #adb5bd;border-radius:12px;'
-                'padding:1rem;background:#f8f9fa;opacity:0.7;">'
-                '⏭️ <b>AI tidak dijalankan</b> — proposal sudah gugur di Tahap 1 (Penilaian Rubrikasi gagal).'
-                '</div>',
-                unsafe_allow_html=True
-            )
-        else:
-            # Rubric lolos → jalankan kedua model otomatis
-            svm_col, bert_col = st.columns(2)
+        bert_col, svm_col = st.columns(2)
 
-            # Model Utama: SVM — penentu keputusan
-            with svm_col:
-                st.markdown("**⭐ Model Utama** — Penentu Keputusan")
-                with st.spinner("⚙️ Menilai proposal..."):
-                    svm_model = load_svm_model()
-                    if svm_model:
-                        ai_available = True
-                        svm_label    = svm_model.predict([full_text])[0]
-                        svm_prob     = svm_model.predict_proba([full_text])[0]
-                        svm_conf     = int(max(svm_prob) * 100)
-                        svm_display  = "Direkomendasikan" if svm_label == "Layak" else "Tidak Direkomendasikan"
-                        badge        = "layak-badge" if svm_label == "Layak" else "tidak-layak-badge"
-                        st.markdown(f'<span class="{badge}">{svm_display}</span>', unsafe_allow_html=True)
-                        st.progress(svm_conf)
-                        st.caption(f"Tingkat Keyakinan: {svm_conf}%")
-                    else:
-                        st.warning(f"⚠️ Model Utama tidak tersedia. Pastikan `svm_model.pkl` diupload ke `{HF_REPO_ID}`")
-
-            # Model Pembanding: IndoBERT — hanya referensi
+        if model_choice in ["IndoBERT (Rekomendasi)", "Keduanya (Bandingkan)"]:
             with bert_col:
-                st.markdown("**🔬 Model Pembanding** — Referensi")
-                with st.spinner("🧠 Menilai proposal (pembanding)..."):
+                with st.spinner("🧠 Memuat & prediksi IndoBERT..."):
                     tokenizer, bert_model = load_bert_model()
                     bert_result           = predict_bert(full_text, tokenizer, bert_model)
-                    if bert_result["label"]:
-                        bert_display = "Direkomendasikan" if bert_result["label"] == "Layak" else "Tidak Direkomendasikan"
-                        badge        = "layak-badge" if bert_result["label"] == "Layak" else "tidak-layak-badge"
-                        st.markdown(f'<span class="{badge}">{bert_display}</span>', unsafe_allow_html=True)
-                        conf = int(bert_result["confidence"] * 100)
-                        st.progress(conf)
-                        st.caption(f"Tingkat Keyakinan: {conf}%")
+
+                if bert_result["label"]:
+                    badge = "layak-badge" if bert_result["label"] == "Layak" else "tidak-layak-badge"
+                    st.markdown("**IndoBERT:**")
+                    st.markdown(f'<span class="{badge}">{bert_result["label"]}</span>',
+                                unsafe_allow_html=True)
+                    conf = int(bert_result["confidence"] * 100)
+                    st.progress(conf)
+                    st.caption(f"Confidence: {conf}%")
+                    st.caption(
+                        f"P(Layak)={bert_result['prob_layak']*100:.1f}% | "
+                        f"P(Tidak Layak)={bert_result['prob_tidak']*100:.1f}%"
+                    )
+                else:
+                    st.warning("⚠️ Model IndoBERT tidak tersedia.\n"
+                               "Pastikan model sudah diupload ke HuggingFace repo:\n"
+                               f"`{HF_REPO_ID}`")
+
+        if model_choice in ["SVM + TF-IDF", "Keduanya (Bandingkan)"]:
+            with svm_col:
+                with st.spinner("⚙️ Memuat & prediksi SVM..."):
+                    svm_model = load_svm_model()
+                    if svm_model:
+                        svm_label = svm_model.predict([full_text])[0]
+                        svm_prob  = svm_model.predict_proba([full_text])[0]
+                        svm_conf  = int(max(svm_prob) * 100)
+                        badge     = "layak-badge" if svm_label == "Layak" else "tidak-layak-badge"
+                        st.markdown("**SVM + TF-IDF:**")
+                        st.markdown(f'<span class="{badge}">{svm_label}</span>',
+                                    unsafe_allow_html=True)
+                        st.progress(svm_conf)
+                        st.caption(f"Confidence: {svm_conf}%")
                     else:
-                        st.info("Model pembanding tidak tersedia.")
+                        st.warning("⚠️ Model SVM tidak tersedia.\n"
+                                   "Pastikan `svm_model.pkl` sudah diupload ke HuggingFace repo:\n"
+                                   f"`{HF_REPO_ID}`")
 
-            if ai_available and bert_result["label"] and svm_label != bert_result["label"]:
-                st.info("ℹ️ Kedua model berbeda pendapat — keputusan final mengikuti Model Utama.")
-
-
-        # KEPUTUSAN FINAL
-        # ════════════════════════════════════════════
         st.divider()
-        st.markdown("### ⚖️ Keputusan Final")
 
-        # --- Logika keputusan 2 tahap ---
-        # Rubric gagal → langsung Tidak Direkomendasikan
-        if not rubric_result["passed"]:
-            final_label   = "Tidak Direkomendasikan"
-            final_reason  = "rubric_failed"
+        # ── Keputusan Final ───────────────────────────
+        st.markdown("#### ⚖️ Keputusan Final")
 
-        # Rubric lolos, tapi tidak ada model AI → fallback ke rubric
-        elif not ai_available:
-            final_label   = "Direkomendasikan"
-            final_reason  = "rubric_only"
+        # ── Keputusan Final: Rubric >= 3 DAN model AI setuju ─────────
+        rubric_ok = rubric_result["total"] >= 3
 
-        # Rubric lolos + ada hasil AI → SVM (Model Utama) yang menentukan
-        else:
-            if svm_label == "Layak":
-                final_label  = "Direkomendasikan"
-                final_reason = "rubric_pass_ai_agree"
+        if model_choice == "IndoBERT (Rekomendasi)":
+            if bert_result["label"]:
+                ai_ok       = bert_result["label"] == "Layak"
+                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
+                using_fallback = False
             else:
-                final_label  = "Perlu Ditinjau Ulang"
-                final_reason = "rubric_pass_ai_disagree"
+                final_label    = rubric_result["heuristic_label"]
+                using_fallback = True
 
-        # ── Tampilan badge final ──────────────────────
-        if final_reason == "rubric_pass_ai_agree":
-            badge_class = "layak-badge"
-            label_text  = "✅ DIREKOMENDASIKAN"
-        elif final_reason == "rubric_only":
-            badge_class = "layak-badge"
-            label_text  = "✅ DIREKOMENDASIKAN"
-        elif final_reason == "rubric_pass_ai_disagree":
-            badge_class = "review-badge"
-            label_text  = "⚠️ PERLU DITINJAU ULANG"
-        else:  # rubric_failed
-            badge_class = "tidak-layak-badge"
-            label_text  = "❌ TIDAK DIREKOMENDASIKAN"
+        elif model_choice == "SVM + TF-IDF":
+            if svm_label:
+                ai_ok       = svm_label == "Layak"
+                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
+                using_fallback = False
+            else:
+                final_label    = rubric_result["heuristic_label"]
+                using_fallback = True
+
+        else:  # Keduanya (Bandingkan)
+            if bert_result["label"] or svm_label:
+                ai_labels   = [l for l in [bert_result["label"], svm_label] if l]
+                # Keduanya harus setuju Layak
+                ai_ok       = all(l == "Layak" for l in ai_labels)
+                final_label = "Layak" if (rubric_ok and ai_ok) else "Tidak Layak"
+                using_fallback = False
+            else:
+                final_label    = rubric_result["heuristic_label"]
+                using_fallback = True
+
+        badge_class = "layak-badge" if final_label == "Layak" else "tidak-layak-badge"
+        label_text  = "✅ LAYAK" if final_label == "Layak" else "❌ TIDAK LAYAK"
 
         col_dec, col_reason = st.columns([1, 2])
         with col_dec:
@@ -523,38 +507,23 @@ if uploaded_file is not None:
                 f'{label_text}</span></div>',
                 unsafe_allow_html=True
             )
+            if using_fallback:
+                st.caption("*Berdasarkan Rubric Scoring\n(model AI belum tersedia)*")
 
         with col_reason:
-            st.markdown("**📋 Penjelasan Hasil:**")
-
-            if final_reason == "rubric_failed":
-                st.error(
-                    f"❌ Penilaian Rubrikasi gagal: hanya {rubric_result['total']} dari 5 aspek terpenuhi "
-                    f"(minimum {RUBRIC_PASS_THRESHOLD}).\n\n"
-                    f"Penilaian AI tidak dijalankan karena proposal belum memenuhi syarat dasar."
-                )
-
-            elif final_reason == "rubric_only":
-                st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
-                st.info("ℹ️ Model AI tidak tersedia — keputusan berdasarkan rubrikasi saja.")
-
-            elif final_reason == "rubric_pass_ai_agree":
-                st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
-                st.success("✅ Model Utama mengkonfirmasi proposal layak mendapatkan sponsorship.")
-                st.info("💡 Proposal sudah lengkap dan dinilai baik. Silakan ajukan ke pihak sponsor.")
-
-            elif final_reason == "rubric_pass_ai_disagree":
-                st.success(f"✅ Penilaian Rubrikasi lolos ({rubric_result['total']}/5 aspek terpenuhi).")
-                st.warning(
-                    "⚠️ Model Utama menilai isi proposal masih perlu diperkuat.\n\n"
-                    "Proposal sudah cukup lengkap secara struktur, namun isi perlu direvisi "
-                    "sebelum diajukan ke pihak sponsor."
-                )
+            st.markdown("**Alasan Keputusan:**")
+            terpenuhi       = [v for v, s in rubric_result["scores"].items() if s == 1]
+            tidak_terpenuhi = [v for v, s in rubric_result["scores"].items() if s == 0]
 
             if terpenuhi:
-                st.success(f"✅ Aspek terpenuhi: {', '.join(terpenuhi)}")
+                st.success(f"✅ Variabel terpenuhi: {', '.join(terpenuhi)}")
             if tidak_terpenuhi:
-                st.error(f"❌ Aspek yang perlu dilengkapi: {', '.join(tidak_terpenuhi)}")
+                st.error(f"❌ Variabel tidak terpenuhi: {', '.join(tidak_terpenuhi)}")
+
+            if final_label == "Layak":
+                st.info("💡 Proposal memenuhi minimal 3 dari 5 kriteria kelayakan sponsorship.")
+            else:
+                st.warning("💡 Proposal perlu diperkuat — kurang dari 3 kriteria terpenuhi.")
 
         if tidak_terpenuhi:
             with st.expander("💡 Saran Perbaikan Proposal"):
@@ -564,24 +533,22 @@ if uploaded_file is not None:
 else:
     # ── Landing Page ──────────────────────────────────
     st.info("👆 Upload file PDF proposal sponsorship untuk memulai analisis.")
-
-    st.markdown("#### Alur Penilaian 2 Tahap")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""
         <div class="metric-card">
-            <h2>📋</h2><b>Tahap 1: Penilaian Rubrikasi</b>
-            <p>5 aspek proposal diperiksa.<br>Skor &lt; 3 → langsung ditolak.</p>
+            <h2>📡</h2><b>Exposure</b>
+            <p>Jangkauan audiens & media</p>
         </div>""", unsafe_allow_html=True)
     with col2:
         st.markdown("""
         <div class="metric-card">
-            <h2>🤖</h2><b>Tahap 2: Penilaian AI</b>
-            <p>Dua model AI dijalankan otomatis.<br>Model Utama menentukan keputusan.</p>
+            <h2>🎁</h2><b>Benefit</b>
+            <p>Keuntungan nyata untuk sponsor</p>
         </div>""", unsafe_allow_html=True)
     with col3:
         st.markdown("""
         <div class="metric-card">
-            <h2>⚖️</h2><b>Hasil Akhir</b>
-            <p>Direkomendasikan jika rubrikasi ✅ <b>dan</b> AI ✅.<br>Konflik → perlu ditinjau ulang.</p>
+            <h2>🏛️</h2><b>Kredibilitas</b>
+            <p>Profesionalitas penyelenggara</p>
         </div>""", unsafe_allow_html=True)
