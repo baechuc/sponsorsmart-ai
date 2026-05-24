@@ -1,5 +1,7 @@
 import streamlit as st
 import re, os, torch
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import pdfplumber
 import pytesseract
 from pdf2image import convert_from_path
@@ -14,226 +16,313 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Custom CSS ────────────────────────────────────────
+# ── Custom CSS — Premium Dark Theme ──────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
+    /* ── Reset & Base ── */
     html, body, [class*="css"] {
-        font-family: 'DM Sans', sans-serif !important;
+        font-family: 'Sora', sans-serif !important;
     }
-
-    /* ═══ LIGHT MODE ═══ */
     .stApp {
-        background-color: #f4f3ff;
-        background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,83,243,0.12) 0%, transparent 70%);
+        background: #0a0d14;
     }
     section[data-testid="stSidebar"] {
-        background: linear-gradient(175deg, #1e1b4b 0%, #2d2870 100%) !important;
-        border-right: none !important;
+        background: #0d1117 !important;
+        border-right: 1px solid #1e2533;
     }
-    section[data-testid="stSidebar"] * { color: #e0e7ff !important; }
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3,
-    section[data-testid="stSidebar"] b  { color: #ffffff !important; }
-    section[data-testid="stSidebar"] .stDivider { border-color: rgba(255,255,255,0.12) !important; }
-    section[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.12) !important; }
-    section[data-testid="stSidebar"] p  { color: #c7d2fe !important; }
-
-    /* ═══ DARK MODE ═══ */
-    [data-theme="dark"] .stApp {
-        background-color: #0c0b1a;
-        background-image: radial-gradient(ellipse 80% 50% at 50% -5%, rgba(99,83,243,0.18) 0%, transparent 65%);
-    }
-    [data-theme="dark"] section[data-testid="stSidebar"] {
-        background: linear-gradient(175deg, #0f0e1f 0%, #1a1842 100%) !important;
-    }
-    [data-theme="dark"] .metric-card  { background: #16132e !important; border-color: rgba(99,83,243,0.25) !important; border-top-color: #7c6ff7 !important; }
-    [data-theme="dark"] .metric-card p { color: #a5b4fc !important; }
-    [data-theme="dark"] .stage-box    { background: #16132e !important; border-color: rgba(99,83,243,0.25) !important; }
-    [data-theme="dark"] .stage-pass   { background: #0a2618 !important; border-color: #4ade80 !important; }
-    [data-theme="dark"] .stage-fail   { background: #200a0a !important; border-color: #f87171 !important; }
-    [data-theme="dark"] .layak-badge       { background: linear-gradient(135deg,#052e16,#064e2a) !important; color: #86efac !important; border-color: #4ade80 !important; }
-    [data-theme="dark"] .tidak-layak-badge { background: linear-gradient(135deg,#1c0505,#3b0a0a) !important; color: #fca5a5 !important; border-color: #f87171 !important; }
-    [data-theme="dark"] .review-badge      { background: linear-gradient(135deg,#1c1205,#3b2200) !important; color: #fde68a !important; border-color: #fbbf24 !important; }
-    [data-theme="dark"] [data-testid="stExpander"] { background: #16132e !important; border-color: rgba(99,83,243,0.25) !important; }
-    [data-theme="dark"] hr { border-color: rgba(99,83,243,0.2) !important; }
-    [data-theme="dark"] h1,[data-theme="dark"] h2,[data-theme="dark"] h3,[data-theme="dark"] h4 { color: #ede9fe !important; }
-    [data-theme="dark"] p  { color: #a5b4fc !important; }
-    [data-theme="dark"] .stMarkdown p  { color: #a5b4fc !important; }
-    [data-theme="dark"] label { color: #a5b4fc !important; }
-    [data-theme="dark"] .subtitle { color: #7c6ff7 !important; }
-    [data-theme="dark"] .stMetric [data-testid="stMetricValue"] { color: #ede9fe !important; }
-    [data-theme="dark"] .stMetric label { color: #7c6ff7 !important; }
-
-    /* ═══ SHARED ═══ */
 
     /* ── Header ── */
-    .hero-wrap {
-        background: linear-gradient(135deg, #1e1b4b 0%, #3b30b8 60%, #5b21b6 100%);
+    .hero-wrapper {
+        background: linear-gradient(135deg, #0f1923 0%, #0a0d14 60%, #111827 100%);
+        border: 1px solid #1e2a3a;
         border-radius: 20px;
-        padding: 2.2rem 2rem 1.8rem;
-        margin-bottom: 1.8rem;
+        padding: 2.5rem 2rem 2rem;
+        margin-bottom: 1.5rem;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 8px 40px rgba(99,83,243,0.35);
     }
-    .hero-wrap::before {
-        content: "";
-        position: absolute; inset: 0;
-        background: radial-gradient(ellipse 70% 80% at 80% 50%, rgba(251,191,36,0.18) 0%, transparent 60%);
-        pointer-events: none;
-    }
-    .hero-wrap::after {
-        content: "";
-        position: absolute; bottom: -30px; right: -30px;
-        width: 200px; height: 200px;
-        background: radial-gradient(circle, rgba(251,191,36,0.15) 0%, transparent 70%);
+    .hero-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(99,179,237,0.12) 0%, transparent 70%);
         border-radius: 50%;
-        pointer-events: none;
+    }
+    .hero-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: -40px; left: 30px;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(167,243,208,0.08) 0%, transparent 70%);
+        border-radius: 50%;
     }
     .main-title {
-        font-family: 'Syne', sans-serif !important;
-        font-size: 2.6rem; font-weight: 800;
-        color: #ffffff !important;
-        text-align: center; margin-bottom: 0.3rem;
-        letter-spacing: -0.03em;
-        text-shadow: 0 2px 20px rgba(251,191,36,0.3);
-        -webkit-text-fill-color: unset !important;
-        background: none !important;
+        font-size: 2.6rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        background: linear-gradient(90deg, #63b3ed 0%, #9ae6b4 60%, #fbd38d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.4rem;
+        line-height: 1.1;
     }
     .subtitle {
-        text-align: center;
-        color: #c7d2fe !important;
+        color: #718096;
         font-size: 0.95rem;
-        margin-bottom: 1rem;
+        font-weight: 400;
+        letter-spacing: 0.01em;
     }
-
-    /* ── Score badge chips ── */
-    .chip-tag {
-        background: rgba(251,191,36,0.18);
-        color: #fef3c7;
-        border: 1px solid rgba(251,191,36,0.4);
-        border-radius: 20px;
-        font-size: 0.72rem; font-weight: 600;
-        padding: 0.25rem 0.9rem;
-        letter-spacing: 0.06em;
+    .hero-badge {
         display: inline-block;
+        background: rgba(99,179,237,0.12);
+        border: 1px solid rgba(99,179,237,0.3);
+        color: #63b3ed;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        margin-bottom: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-family: 'JetBrains Mono', monospace !important;
     }
 
-    /* ── Metric cards ── */
-    .metric-card {
-        background: #ffffff;
+    /* ── Stage Cards (landing) ── */
+    .stage-card {
+        background: #0f1923;
+        border: 1px solid #1e2a3a;
         border-radius: 16px;
-        padding: 1.3rem 1rem;
+        padding: 1.6rem 1.4rem;
         text-align: center;
-        border: 1px solid #e0d9ff;
-        border-top: 3px solid #6355f3;
-        margin-bottom: 0.5rem;
-        box-shadow: 0 4px 18px rgba(99,83,243,0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        transition: border-color 0.2s;
     }
-    .metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(99,83,243,0.18); }
-    .metric-card p { color: #5b5480 !important; font-size: 0.88rem; }
-
-    /* ── Status badges ── */
-    .layak-badge {
-        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-        color: #14532d;
-        border: 1.5px solid #4ade80;
-        padding: 0.75rem 2.2rem; border-radius: 50px;
-        font-size: 1.25rem; font-weight: 700;
-        display: inline-block; margin: 0.8rem 0;
-        box-shadow: 0 4px 16px rgba(74,222,128,0.25);
-        font-family: 'Syne', sans-serif !important;
+    .stage-card:hover { border-color: #63b3ed55; }
+    .stage-icon { font-size: 2rem; margin-bottom: 0.8rem; }
+    .stage-title {
+        font-size: 0.95rem; font-weight: 700;
+        color: #e2e8f0; margin-bottom: 0.5rem;
     }
-    .tidak-layak-badge {
-        background: linear-gradient(135deg, #fee2e2, #fecaca);
-        color: #7f1d1d;
-        border: 1.5px solid #f87171;
-        padding: 0.75rem 2.2rem; border-radius: 50px;
-        font-size: 1.25rem; font-weight: 700;
-        display: inline-block; margin: 0.8rem 0;
-        box-shadow: 0 4px 16px rgba(248,113,113,0.25);
-        font-family: 'Syne', sans-serif !important;
-    }
-    .review-badge {
-        background: linear-gradient(135deg, #fef9c3, #fef08a);
-        color: #713f12;
-        border: 1.5px solid #fbbf24;
-        padding: 0.75rem 2.2rem; border-radius: 50px;
-        font-size: 1.25rem; font-weight: 700;
-        display: inline-block; margin: 0.8rem 0;
-        box-shadow: 0 4px 16px rgba(251,191,36,0.3);
-        font-family: 'Syne', sans-serif !important;
+    .stage-desc { font-size: 0.82rem; color: #718096; line-height: 1.5; }
+    .stage-num {
+        position: absolute; top: 12px; right: 14px;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.7rem; font-weight: 600;
+        color: #4a5568;
     }
 
-    /* ── Stage boxes ── */
-    .stage-box  { border: 1.5px solid #e0d9ff; border-radius: 14px; padding: 1rem 1.2rem; margin-bottom: 1rem; background: #ffffff; }
-    .stage-pass { border-color: #4ade80; background: #f0fdf4; }
-    .stage-fail { border-color: #f87171; background: #fef2f2; }
-    .stage-skip { border-color: #d1d5db; background: #f9fafb; opacity: 0.65; }
-
-    /* ── Button ── */
-    .stButton > button {
-        background: linear-gradient(135deg, #dc2626, #ef4444) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-weight: 800 !important;
-        font-size: 1.05rem !important;
-        letter-spacing: 0.04em !important;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.25) !important;
-        box-shadow: 0 6px 22px rgba(220,38,38,0.4) !important;
-        transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s !important;
-        font-family: 'DM Sans', sans-serif !important;
+    /* ── Upload Zone ── */
+    .upload-wrapper {
+        background: #0f1923;
+        border: 1.5px dashed #2d3748;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: border-color 0.2s;
     }
-    .stButton > button:hover {
-        opacity: 1 !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 10px 30px rgba(220,38,38,0.5) !important;
-        background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
+    .upload-wrapper:hover { border-color: #63b3ed55; }
+
+    /* ── Info Pill ── */
+    .info-pill {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        background: rgba(99,179,237,0.08);
+        border: 1px solid rgba(99,179,237,0.2);
+        border-radius: 8px;
+        padding: 0.5rem 0.9rem;
+        font-size: 0.82rem; color: #a0aec0;
+        margin: 0.2rem;
+        font-family: 'JetBrains Mono', monospace !important;
     }
 
-    /* ── Expander ── */
-    [data-testid="stExpander"] {
-        background: #ffffff !important;
-        border: 1px solid #e0d9ff !important;
-        border-radius: 12px !important;
+    /* ── Section Headers ── */
+    .section-header {
+        display: flex; align-items: center; gap: 0.7rem;
+        margin: 1.5rem 0 1rem;
+    }
+    .section-badge {
+        background: rgba(99,179,237,0.15);
+        color: #63b3ed;
+        border: 1px solid rgba(99,179,237,0.35);
+        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', monospace !important;
+        letter-spacing: 0.05em;
+    }
+    .section-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #e2e8f0;
     }
 
-    /* ── Misc ── */
-    hr { border-color: rgba(99,83,243,0.15) !important; }
-    h1,h2,h3,h4 { color: #1e1b4b !important; font-family: 'Syne', sans-serif !important; }
-    p  { color: #5b5480 !important; }
-    .stMarkdown p { color: #5b5480 !important; }
-    label { color: #5b5480 !important; }
-    .stAlert { border-radius: 12px !important; }
-    .stMetric label { color: #7c6ff7 !important; font-size: 0.8rem !important; }
-    .stMetric [data-testid="stMetricValue"] { color: #1e1b4b !important; font-weight: 700 !important; }
-    .stFileUploader { border-color: rgba(99,83,243,0.3) !important; border-radius: 12px !important; }
+    /* ── Variabel Cards ── */
+    .var-card {
+        border-radius: 12px;
+        padding: 1rem 0.8rem;
+        text-align: center;
+        border: 1px solid transparent;
+        transition: transform 0.15s;
+    }
+    .var-card:hover { transform: translateY(-2px); }
+    .var-card.pass {
+        background: linear-gradient(160deg, #0f2319 0%, #0d1f17 100%);
+        border-color: #276749;
+    }
+    .var-card.fail {
+        background: linear-gradient(160deg, #2d1515 0%, #1f0e0e 100%);
+        border-color: #9b2335;
+    }
+    .var-name { font-size: 0.8rem; font-weight: 600; color: #a0aec0; margin: 0.4rem 0; }
+    .var-status { font-size: 1.4rem; font-weight: 800; }
+    .var-status.pass { color: #48bb78; }
+    .var-status.fail { color: #fc8181; }
+    .var-score {
+        font-size: 0.7rem;
+        font-family: 'JetBrains Mono', monospace !important;
+        color: #718096;
+        margin-top: 0.3rem;
+    }
 
-    /* ── Sidebar model status cards ── */
-    .sidebar-status {
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 10px;
-        padding: 0.5rem 0.8rem;
+    /* ── Rubric Summary Bar ── */
+    .rubric-summary {
+        border-radius: 12px;
+        padding: 1rem 1.4rem;
+        margin: 1rem 0;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    .rubric-summary.pass {
+        background: linear-gradient(90deg, #0f2319 0%, #0d1f17 100%);
+        border: 1px solid #276749;
+        color: #68d391;
+    }
+    .rubric-summary.fail {
+        background: linear-gradient(90deg, #2d1515 0%, #1f0e0e 100%);
+        border: 1px solid #9b2335;
+        color: #fc8181;
+    }
+
+    /* ── AI Model Cards ── */
+    .model-card {
+        background: #0f1923;
+        border: 1px solid #1e2a3a;
+        border-radius: 14px;
+        padding: 1.4rem;
+        height: 100%;
+    }
+    .model-name {
+        font-size: 0.85rem; font-weight: 700;
+        color: #a0aec0; margin-bottom: 1rem;
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    /* ── Final Decision ── */
+    .decision-card {
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        margin: 1rem 0;
+    }
+    .decision-card.layak {
+        background: linear-gradient(160deg, #0f2319 0%, #0d1a13 100%);
+        border: 2px solid #276749;
+    }
+    .decision-card.tidak-layak {
+        background: linear-gradient(160deg, #2d1515 0%, #1a0d0d 100%);
+        border: 2px solid #9b2335;
+    }
+    .decision-card.review {
+        background: linear-gradient(160deg, #2d2415 0%, #1a1709 100%);
+        border: 2px solid #b7791f;
+    }
+    .decision-label {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
         margin-bottom: 0.4rem;
-        font-size: 0.85rem;
-        color: #e0e7ff !important;
     }
+    .decision-label.layak { color: #68d391; }
+    .decision-label.tidak-layak { color: #fc8181; }
+    .decision-label.review { color: #f6ad55; }
+    .decision-sub {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    /* ── Saran Box ── */
+    .saran-box {
+        background: #0f1923;
+        border: 1px solid #1e2a3a;
+        border-left: 3px solid #f6ad55;
+        border-radius: 10px;
+        padding: 0.9rem 1.1rem;
+        margin: 0.4rem 0;
+        font-size: 0.87rem;
+        color: #cbd5e0;
+    }
+    .saran-var {
+        font-weight: 700;
+        color: #f6ad55;
+        font-size: 0.82rem;
+        margin-bottom: 0.2rem;
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    /* ── Sidebar Styling ── */
+    .sidebar-status-row {
+        display: flex; align-items: center; gap: 0.6rem;
+        padding: 0.6rem 0.8rem;
+        background: #0f1923;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        border: 1px solid #1e2a3a;
+        font-size: 0.85rem;
+        color: #cbd5e0;
+    }
+    .dot-green { color: #48bb78; }
+    .dot-red   { color: #fc8181; }
+
+    /* ── Override Streamlit defaults ── */
+    .stButton > button {
+        background: linear-gradient(90deg, #2b6cb0, #2c7a7b) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-family: 'Sora', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        padding: 0.75rem 1.5rem !important;
+        transition: opacity 0.2s !important;
+        letter-spacing: 0.01em !important;
+    }
+    .stButton > button:hover { opacity: 0.88 !important; }
+    .stRadio label { color: #a0aec0 !important; font-size: 0.88rem !important; }
+    .stMetric label { color: #718096 !important; font-size: 0.8rem !important; }
+    .stMetric [data-testid="stMetricValue"] { color: #e2e8f0 !important; font-family: 'JetBrains Mono', monospace !important; }
+    [data-testid="stExpander"] { background: #0f1923 !important; border: 1px solid #1e2a3a !important; border-radius: 10px !important; }
+    div[data-testid="stFileUploader"] { background: transparent; }
+    .stAlert { border-radius: 10px !important; }
+    hr { border-color: #1e2a3a !important; }
+    h1,h2,h3,h4 { color: #e2e8f0 !important; font-family: 'Sora', sans-serif !important; }
+    p, li { color: #a0aec0 !important; }
+    .stMarkdown p { color: #a0aec0 !important; }
+    label { color: #a0aec0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
+# ── Hero Header ───────────────────────────────────────
 st.markdown("""
-<div class="hero-wrap">
-    <p class="main-title">🎯 SponsorSmart AI</p>
-    <p class="subtitle">Sistem Pendukung Keputusan — Penilaian Kelayakan Proposal Sponsorship</p>
-    <div style="text-align:center;margin-top:0.8rem;">
-        <span class="chip-tag">MACHINE LEARNING · NLP · SVM + TF-IDF</span>
-    </div>
+<div class="hero-wrapper">
+    <div class="hero-badge">🤖 Machine Learning · NLP · SVM + TF-IDF</div>
+    <div class="main-title">🎯 SponsorSmart AI</div>
+    <div class="subtitle">Sistem Pendukung Keputusan — Penilaian Kelayakan Proposal Sponsorship secara Otomatis & Transparan</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -314,12 +403,13 @@ class ThresholdSVMPipeline:
     def predict(self, texts):
         probs     = self.predict_proba(texts)
         layak_idx = list(self.classes_).index("Layak")
-        return ["Layak" if p[layak_idx] >= self.threshold else "Tidak Layak" for p in probs]
+        return ["Layak" if p[layak_idx] >= self.threshold
+                else "Tidak Layak" for p in probs]
 
     def predict_proba(self, texts):
         return self.svm.predict_proba(self.tfidf.transform(texts))
 
-# ── Fungsi Load Model ─────────────────────────────────
+# ── Load Model ────────────────────────────────────────
 @st.cache_resource
 def load_bert_model():
     try:
@@ -333,14 +423,16 @@ def load_bert_model():
 def load_svm_model():
     try:
         from huggingface_hub import hf_hub_download
-        svm_path = hf_hub_download(repo_id=HF_REPO_ID, filename="svm_model.pkl", token=HF_TOKEN)
+        svm_path = hf_hub_download(
+            repo_id=HF_REPO_ID, filename="svm_model.pkl", token=HF_TOKEN
+        )
         with open(svm_path, "rb") as f:
             return pickle.load(f)
     except Exception as e:
         print(f"[SVM Load Error] {e}")
         return None
 
-# ── Fungsi Ekstraksi PDF ──────────────────────────────
+# ── Ekstraksi PDF ─────────────────────────────────────
 def extract_text(uploaded_file) -> tuple:
     import tempfile
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -376,7 +468,7 @@ def extract_text(uploaded_file) -> tuple:
 
     return full_text.strip(), method
 
-# ── Fungsi Rubric Scoring ─────────────────────────────
+# ── Rubric Scoring ────────────────────────────────────
 def score_rubric(text: str) -> dict:
     text_lower = text.lower()
     scores, evidences = {}, {}
@@ -396,11 +488,14 @@ def score_rubric(text: str) -> dict:
 
     return {"scores": scores, "evidences": evidences, "total": total, "passed": passed}
 
-# ── Fungsi Prediksi IndoBERT ──────────────────────────
+# ── Prediksi IndoBERT ─────────────────────────────────
 def predict_bert(text: str, tokenizer, model) -> dict:
     if tokenizer is None or model is None:
         return {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
-    inputs = tokenizer(text, max_length=256, padding="max_length", truncation=True, return_tensors="pt")
+    inputs = tokenizer(
+        text, max_length=256, padding="max_length",
+        truncation=True, return_tensors="pt"
+    )
     with torch.no_grad():
         outputs = model(**inputs)
         probs   = torch.softmax(outputs.logits, dim=1).squeeze().tolist()
@@ -414,257 +509,434 @@ def predict_bert(text: str, tokenizer, model) -> dict:
         "prob_tidak": probs[0]
     }
 
-# ── Sidebar ───────────────────────────────────────────
-with st.sidebar:
-    st.image("https://img.icons8.com/color/96/000000/target.png", width=72)
-    st.title("ℹ️ Info Sistem")
-    st.divider()
-    st.markdown("### 🔌 Status Model")
+# ── Chart Skor ────────────────────────────────────────
+def render_score_chart(scores: dict):
+    vars_  = list(scores.keys())
+    vals   = list(scores.values())
+    colors = ["#48bb78" if v == 1 else "#fc8181" for v in vals]
 
-    with st.spinner("Cek koneksi model..."):
+    fig, ax = plt.subplots(figsize=(8, 3))
+    fig.patch.set_facecolor('#0f1923')
+    ax.set_facecolor('#0f1923')
+
+    bars = ax.barh(vars_, vals, color=colors, edgecolor='none', height=0.45)
+    ax.set_xlim(0, 1.5)
+    ax.set_xlabel("Skor (0 = Tidak Terpenuhi, 1 = Terpenuhi)", color='#718096', fontsize=9)
+    ax.set_title("Skor Tiap Variabel — Penilaian Rubrikasi", color='#e2e8f0', fontsize=11, fontweight='bold', pad=12)
+    ax.tick_params(colors='#a0aec0')
+    for spine in ax.spines.values():
+        spine.set_edgecolor('#1e2a3a')
+
+    for bar, val in zip(bars, vals):
+        lbl = "✓ Terpenuhi" if val == 1 else "✗ Tidak"
+        ax.text(val + 0.05, bar.get_y() + bar.get_height() / 2,
+                lbl, va="center", fontsize=9, fontweight="bold",
+                color="#48bb78" if val == 1 else "#fc8181")
+
+    green = mpatches.Patch(color="#48bb78", label="Terpenuhi (1)")
+    red   = mpatches.Patch(color="#fc8181", label="Tidak Terpenuhi (0)")
+    legend = ax.legend(handles=[green, red], loc="lower right",
+                       facecolor='#0d1117', edgecolor='#1e2a3a', labelcolor='#a0aec0')
+    plt.tight_layout()
+    return fig
+
+# ══════════════════════════════════════════════════════
+# SIDEBAR
+# ══════════════════════════════════════════════════════
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align:center; padding: 1rem 0 0.5rem;">
+        <div style="font-size:2.5rem">🎯</div>
+        <div style="font-family:'Sora',sans-serif; font-weight:800; font-size:1.1rem;
+                    background:linear-gradient(90deg,#63b3ed,#9ae6b4);
+                    -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+            SponsorSmart
+        </div>
+        <div style="font-size:0.72rem; color:#4a5568; margin-top:0.2rem; letter-spacing:0.05em;">
+            v2.0 · Kelompok 2 · Telkom University
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.divider()
+
+    st.divider()
+    st.markdown("**🔌 Status Sistem AI**")
+
+    with st.spinner("Memeriksa status..."):
         tokenizer_check, model_check = load_bert_model()
         svm_check                    = load_svm_model()
 
-    st.markdown(f'<div class="sidebar-status">{"🟢" if svm_check else "🔴"} <b>Model Utama</b> — {"Siap" if svm_check else "Tidak ditemukan"}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sidebar-status">{"🟢" if tokenizer_check else "🔴"} <b>Model Pembanding</b> — {"Siap" if tokenizer_check else "Tidak ditemukan"}</div>', unsafe_allow_html=True)
+    svm_status  = ("🟢", "Siap") if svm_check is not None else ("🔴", "Tidak tersedia")
+    bert_status = ("🟢", "Siap") if tokenizer_check is not None else ("🔴", "Tidak tersedia")
 
-    if tokenizer_check is None and svm_check is None:
-        st.warning("⚠️ Semua model offline.\nHanya Penilaian Rubrikasi yang aktif.")
+    st.markdown(f'''
+    <div class="sidebar-status-row">
+        <span>{svm_status[0]}</span>
+        <span style="font-weight:600;">Model Utama</span>
+        <span style="margin-left:auto; font-size:0.75rem; color:#718096;">{svm_status[1]}</span>
+    </div>
+    <div class="sidebar-status-row">
+        <span>{bert_status[0]}</span>
+        <span style="font-weight:600;">Model Pembanding</span>
+        <span style="margin-left:auto; font-size:0.75rem; color:#718096;">{bert_status[1]}</span>
+    </div>
+    ''', unsafe_allow_html=True)
+
+    if svm_check is None and tokenizer_check is None:
+        st.warning("⚠️ Sistem AI tidak tersedia. Hanya Penilaian Rubrikasi yang aktif.")
 
     st.divider()
-    st.markdown("### 🔁 Alur Penilaian")
-    st.markdown("""
-    Sistem ini bekerja dalam **2 tahap berurutan**:
+    st.markdown("**📖 Cara Kerja Penilaian**")
+    st.markdown('''
+    <div style="font-size:0.82rem; color:#718096; line-height:1.8;">
+    <b style="color:#63b3ed;">Tahap 1 — Cek Kelengkapan Proposal</b><br>
+    Sistem memeriksa 5 aspek penting secara otomatis.<br>
+    Kurang dari 3 aspek → ❌ Proposal ditolak.<br><br>
+    <b style="color:#63b3ed;">Tahap 2 — Penilaian AI</b><br>
+    Proposal yang lolos dinilai lebih dalam oleh AI.<br><br>
+    <b style="color:#e2e8f0;">Hasil Akhir:</b><br>
+    ✅ <b style="color:#68d391;">Direkomendasikan</b> = Lolos semua penilaian<br>
+    ⚠️ <b style="color:#f6ad55;">Perlu Ditinjau</b> = Ada ketidaksesuaian<br>
+    ❌ <b style="color:#fc8181;">Tidak Direkomendasikan</b> = Tidak lolos
+    </div>
+    ''', unsafe_allow_html=True)
 
-    **Tahap 1 — Penilaian Rubrikasi**
-    5 aspek proposal diperiksa.
-    Skor < 3 → ❌ Langsung ditolak.
+# ══════════════════════════════════════════════════════
+# MAIN — Upload Section
+# ══════════════════════════════════════════════════════
+st.markdown("""
+<div class="section-header">
+    <span class="section-badge">STEP 1</span>
+    <span class="section-title">📤 Upload Proposal Sponsorship</span>
+</div>
+""", unsafe_allow_html=True)
 
-    **Tahap 2 — Penilaian AI**
-    Dua model AI dijalankan otomatis.
-    Model Utama menentukan keputusan final.
-
-    **Hasil Akhir:**
-    - ✅ Direkomendasikan = Rubrikasi ✓ + AI ✓
-    - ⚠️ Perlu Ditinjau Ulang = Rubrikasi ✓, AI ragu
-    - ❌ Tidak Direkomendasikan = Rubrikasi gagal
-    """)
-
-
-# ── Main Content ──────────────────────────────────────
-st.subheader("📤 Upload Proposal Sponsorship")
 uploaded_file = st.file_uploader(
     "Upload file PDF proposal sponsorship",
     type=["pdf"],
-    help="Format PDF, maksimal 50MB"
+    help="Format: PDF · Maks 50MB · Halaman dibaca otomatis (pdfPlumber + OCR fallback)"
 )
 
-if uploaded_file is not None:
+if uploaded_file is None:
+    # ── Landing Info ──────────────────────────────────
+    st.markdown("""
+    <div style="background:#0f1923; border:1px solid #1e2a3a; border-radius:14px;
+                padding:1.4rem 1.6rem; margin-top:0.5rem; margin-bottom:1.5rem;">
+        <div style="font-size:0.82rem; color:#718096; margin-bottom:0.8rem;">
+            📎 Upload file PDF proposal Anda di atas untuk memulai analisis otomatis.
+        </div>
+        <div>
+            <span class="info-pill">📄 Format: PDF</span>
+            <span class="info-pill">🔍 pdfPlumber + OCR</span>
+            <span class="info-pill">⭐ Model Utama + 🔬 Pembanding</span>
+            <span class="info-pill">⚡ 2 Tahap Penilaian</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="section-header" style="margin-top:1.5rem;">
+        <span class="section-title">📋 Cara Kerja Sistem</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+    cards = [
+        ("01", "📋", "Penilaian Rubrikasi",
+         "5 variabel keyword diperiksa secara otomatis. Skor < 3 dari 5 → proposal langsung ditolak."),
+        ("02", "🤖", "Verifikasi AI",
+         "Proposal yang lolos kelengkapan dinilai oleh dua model AI. Keputusan final ditentukan oleh model terbaik."),
+        ("03", "⚖️", "Keputusan Final",
+         "Layak jika rubrik ✅ dan AI ✅. Konflik antara keduanya → rekomendasi review manual."),
+    ]
+    for col, (num, icon, title, desc) in zip([col1, col2, col3], cards):
+        with col:
+            st.markdown(f"""
+            <div class="stage-card">
+                <div class="stage-num">{num}</div>
+                <div class="stage-icon">{icon}</div>
+                <div class="stage-title">{title}</div>
+                <div class="stage-desc">{desc}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="section-header" style="margin-top:2rem;">
+        <span class="section-title">📊 Variabel Penilaian Rubrikasi</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    rubric_cols = st.columns(5)
+    rubric_info = [
+        ("📡", "Exposure", "Jangkauan audiens & media publikasi"),
+        ("🎯", "Relevansi", "Kesesuaian acara dengan profil sponsor"),
+        ("🎁", "Benefit", "Keuntungan konkret bagi sponsor"),
+        ("💰", "Anggaran", "Kejelasan nominal & rincian biaya"),
+        ("🏛️", "Kredibilitas", "Profesionalitas penyelenggara"),
+    ]
+    for col, (icon, name, desc) in zip(rubric_cols, rubric_info):
+        with col:
+            st.markdown(f"""
+            <div style="background:#0f1923; border:1px solid #1e2a3a; border-radius:12px;
+                        padding:1rem 0.8rem; text-align:center;">
+                <div style="font-size:1.6rem;">{icon}</div>
+                <div style="font-weight:700; font-size:0.85rem; color:#e2e8f0; margin:0.4rem 0 0.3rem;">{name}</div>
+                <div style="font-size:0.75rem; color:#718096; line-height:1.4;">{desc}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+else:
+    # ── File Uploaded ──────────────────────────────────
     st.success(f"✅ File berhasil diupload: **{uploaded_file.name}**")
 
     with st.spinner("🔍 Mengekstrak teks dari PDF..."):
         full_text, method = extract_text(uploaded_file)
 
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        with st.expander("👁️ Preview Teks Hasil Ekstraksi", expanded=False):
-            if full_text:
-                preview = full_text[:2000] + "..." if len(full_text) > 2000 else full_text
-                st.text_area("Teks Proposal:", preview, height=250)
-            else:
-                st.error("Teks tidak dapat diekstrak dari file ini.")
-    with col2:
-        method_label = {"pdfplumber": "PDFPLUMBER", "ocr": "OCR", "failed": "GAGAL"}
-        st.metric("Metode Ekstraksi", method_label.get(method, method.upper()))
-        st.metric("Jumlah Kata",      len(full_text.split()))
-        st.metric("Jumlah Karakter",  len(full_text))
+    # File info row
+    method_label = {"pdfplumber": "PDFPLUMBER", "ocr": "OCR (Tesseract)", "failed": "GAGAL"}
+    col_m, col_w, col_c = st.columns(3)
+    col_m.metric("🔧 Metode Ekstraksi", method_label.get(method, method.upper()))
+    col_w.metric("📝 Jumlah Kata",      f"{len(full_text.split()):,}")
+    col_c.metric("🔢 Jumlah Karakter",  f"{len(full_text):,}")
+
+    with st.expander("👁️ Preview Teks Hasil Ekstraksi", expanded=False):
+        if full_text:
+            preview = full_text[:2000] + "\n\n…[teks dipotong]" if len(full_text) > 2000 else full_text
+            st.text_area("Teks Proposal:", preview, height=220,
+                         help="Hanya preview — teks lengkap digunakan untuk analisis")
+        else:
+            st.error("Teks tidak dapat diekstrak dari file ini.")
 
     if not full_text or len(full_text.split()) < 30:
-        st.error("⚠️ Teks proposal terlalu sedikit untuk dianalisis.")
+        st.error("⚠️ Teks proposal terlalu sedikit untuk dianalisis. Coba upload file PDF yang lebih lengkap.")
         st.stop()
 
     st.divider()
 
-    if st.button("🚀 Analisis Proposal", type="primary", use_container_width=True):
-        st.divider()
-        st.subheader("📊 Hasil Analisis")
+    if st.button("🚀 Mulai Analisis Proposal", type="primary", use_container_width=True):
 
-        # ════════════════ TAHAP 1: FILTER RUBRIC ════════════════
-        st.markdown("### Tahap 1 — Penilaian Rubrikasi")
+        st.markdown("""
+        <div class="section-header" style="margin-top:1rem;">
+            <span class="section-badge">TAHAP 1</span>
+            <span class="section-title">📋 Penilaian Rubrikasi</span>
+        </div>
+        """, unsafe_allow_html=True)
 
-        with st.spinner("📋 Menghitung skor penilaian rubrikasi..."):
+        with st.spinner("📋 Menghitung skor rubrikasi..."):
             rubric_result = score_rubric(full_text)
 
+        # ── Variabel Cards ──
         cols = st.columns(5)
         for i, (var, score) in enumerate(rubric_result["scores"].items()):
             with cols[i]:
-                if score == 1:
-                    bg, border, status = "#f0fdf4", "#4ade80", "✓"
-                else:
-                    bg, border, status = "#fef2f2", "#f87171", "✗"
+                css_class = "pass" if score == 1 else "fail"
+                status    = "✓" if score == 1 else "✗"
                 st.markdown(f"""
-                <div style="background:{bg};padding:14px 10px;border-radius:14px;text-align:center;
-                            border:2px solid {border};box-shadow:0 2px 10px {border}33;">
-                    <div style="font-size:1.6rem">{VAR_ICONS[var]}</div>
-                    <div style="font-weight:700;font-size:0.88rem;color:#1e1b4b;">{var}</div>
-                    <div style="font-size:2rem;font-weight:900;color:{"#16a34a" if score==1 else "#dc2626"};">{status}</div>
-                    <div style="font-size:0.78rem;color:#6b7280;">Skor: {score}/1</div>
+                <div class="var-card {css_class}">
+                    <div style="font-size:1.5rem">{VAR_ICONS[var]}</div>
+                    <div class="var-name">{var}</div>
+                    <div class="var-status {css_class}">{status}</div>
+                    <div class="var-score">Skor: {score}/1</div>
                 </div>
                 """, unsafe_allow_html=True)
+
+        st.pyplot(render_score_chart(rubric_result["scores"]))
 
         terpenuhi       = [v for v, s in rubric_result["scores"].items() if s == 1]
         tidak_terpenuhi = [v for v, s in rubric_result["scores"].items() if s == 0]
 
-        rubric_color  = "#f0fdf4" if rubric_result["passed"] else "#fef2f2"
-        rubric_border = "#4ade80" if rubric_result["passed"] else "#f87171"
-        rubric_icon   = "✅" if rubric_result["passed"] else "❌"
-        rubric_text   = (
-            f"Penilaian Rubrikasi lolos ({rubric_result['total']}/5 variabel terpenuhi) — lanjut ke verifikasi AI"
+        rubric_class = "pass" if rubric_result["passed"] else "fail"
+        rubric_icon  = "✅" if rubric_result["passed"] else "❌"
+        rubric_text  = (
+            f"Kelengkapan Proposal: Lolos ({rubric_result['total']} dari 5 aspek terpenuhi) — lanjut ke Penilaian AI"
             if rubric_result["passed"] else
-            f"Penilaian Rubrikasi gagal ({rubric_result['total']}/5 variabel terpenuhi) — proposal ditolak tanpa perlu AI"
+            f"Kelengkapan Proposal: Tidak Memenuhi Syarat ({rubric_result['total']} dari 5 aspek terpenuhi) — proposal tidak dapat dilanjutkan"
         )
-        st.markdown(
-            f'<div style="background:{rubric_color};padding:0.9rem 1.3rem;border:2px solid {rubric_border};'
-            f'border-radius:12px;font-weight:700;font-size:1rem;margin-top:1rem;'
-            f'box-shadow:0 2px 12px {rubric_border}33;">'
-            f'{rubric_icon} {rubric_text}</div>',
-            unsafe_allow_html=True
-        )
+        st.markdown(f"""
+        <div class="rubric-summary {rubric_class}">
+            <span style="font-size:1.3rem">{rubric_icon}</span>
+            <span>{rubric_text}</span>
+        </div>
+        """, unsafe_allow_html=True)
 
         with st.expander("🔍 Detail Bukti per Variabel (Penilaian Rubrikasi)"):
             for var, evid in rubric_result["evidences"].items():
                 icon     = "✅" if rubric_result["scores"][var] == 1 else "❌"
                 evid_str = str(evid) if evid else "Tidak ditemukan indikator"
-                st.markdown(f"{icon} **{var}**: {evid_str}")
+                st.markdown(f"{icon} **{var}**: `{evid_str}`")
 
-        # ════════════════ TAHAP 2: VERIFIKASI AI ════════════════
-        st.divider()
-        st.markdown("### Tahap 2 — Verifikasi AI")
+        # ════════════════════════════════════════════
+        # TAHAP 2: VERIFIKASI AI
+        # ════════════════════════════════════════════
+        st.markdown("""
+        <div class="section-header" style="margin-top:1.5rem;">
+            <span class="section-badge">TAHAP 2</span>
+            <span class="section-title">🤖 Penilaian AI</span>
+        </div>
+        """, unsafe_allow_html=True)
 
-        bert_result  = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
         svm_label    = None
         svm_conf     = 0
+        bert_result  = {"label": None, "confidence": 0, "prob_layak": 0, "prob_tidak": 0}
         ai_available = False
 
         if not rubric_result["passed"]:
-            st.markdown(
-                '<div class="stage-skip" style="border:1.5px solid rgba(128,128,128,0.3);border-radius:14px;'
-                'padding:1rem 1.2rem;background:rgba(128,128,128,0.06);">'
-                '⏭️ <b>AI tidak dijalankan</b> — proposal sudah gugur di Tahap 1.</div>',
-                unsafe_allow_html=True
-            )
+            st.markdown("""
+            <div style="background:#0f1923; border:1px solid #2d3748; border-radius:12px;
+                        padding:1.2rem 1.4rem; color:#718096; font-size:0.9rem;">
+                ⏭️ <b style="color:#a0aec0;">Penilaian AI dilewati</b> — Proposal tidak memenuhi 
+                syarat kelengkapan dasar. Penilaian AI tidak perlu dijalankan.
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            svm_col, bert_col = st.columns(2)
+            col_svm, col_bert = st.columns(2)
 
-            with svm_col:
-                st.markdown("**⭐ Model Utama** — Penentu Keputusan")
-                with st.spinner("⚙️ Menilai proposal..."):
+            # ── Model Utama: SVM (penentu keputusan) ──
+            with col_svm:
+                st.markdown('<div class="model-card">', unsafe_allow_html=True)
+                st.markdown('''<div class="model-name">⭐ Model Utama <span style="font-size:0.65rem;color:#f6ad55;margin-left:4px;">PENENTU KEPUTUSAN</span></div>''', unsafe_allow_html=True)
+                with st.spinner("Menilai proposal..."):
                     svm_model = load_svm_model()
                     if svm_model:
                         ai_available = True
                         svm_label    = svm_model.predict([full_text])[0]
                         svm_prob     = svm_model.predict_proba([full_text])[0]
                         svm_conf     = int(max(svm_prob) * 100)
-                        svm_display  = "Direkomendasikan" if svm_label == "Layak" else "Tidak Direkomendasikan"
-                        badge        = "layak-badge" if svm_label == "Layak" else "tidak-layak-badge"
-                        st.markdown(f'<span class="{badge}">{svm_display}</span>', unsafe_allow_html=True)
+                        is_layak     = svm_label == "Layak"
+                        color        = "#48bb78" if is_layak else "#fc8181"
+                        verdict_text = "Direkomendasikan" if is_layak else "Tidak Direkomendasikan"
+                        verdict_icon = "✅" if is_layak else "❌"
+                        st.markdown(f"""
+                        <div style="font-size:1.5rem; font-weight:800; color:{color};
+                                    margin:0.5rem 0 0.6rem; letter-spacing:-0.02em;">
+                            {verdict_icon} {verdict_text}
+                        </div>
+                        """, unsafe_allow_html=True)
                         st.progress(svm_conf)
-                        st.caption(f"Tingkat Keyakinan: {svm_conf}%")
+                        st.caption(f"Tingkat Keyakinan: **{svm_conf}%**")
                     else:
-                        st.warning(f"⚠️ Model Utama tidak tersedia.")
+                        st.warning(f"⚠️ Model utama tidak tersedia.")
+                st.markdown('</div>', unsafe_allow_html=True)
 
-            with bert_col:
-                st.markdown("**🔬 Model Pembanding** — Referensi")
-                with st.spinner("🧠 Menilai proposal (pembanding)..."):
+            # ── Model Pembanding: IndoBERT (hanya informasi) ──
+            with col_bert:
+                st.markdown('<div class="model-card">', unsafe_allow_html=True)
+                st.markdown('''<div class="model-name">🔬 Model Pembanding <span style="font-size:0.65rem;color:#718096;margin-left:4px;">REFERENSI</span></div>''', unsafe_allow_html=True)
+                with st.spinner("Menilai proposal (pembanding)..."):
                     tokenizer, bert_model = load_bert_model()
                     bert_result           = predict_bert(full_text, tokenizer, bert_model)
                     if bert_result["label"]:
-                        bert_display = "Direkomendasikan" if bert_result["label"] == "Layak" else "Tidak Direkomendasikan"
-                        badge        = "layak-badge" if bert_result["label"] == "Layak" else "tidak-layak-badge"
-                        st.markdown(f'<span class="{badge}">{bert_display}</span>', unsafe_allow_html=True)
-                        conf = int(bert_result["confidence"] * 100)
-                        st.progress(conf)
-                        st.caption(f"Tingkat Keyakinan: {conf}%")
+                        is_layak_bert = bert_result["label"] == "Layak"
+                        color_bert    = "#48bb78" if is_layak_bert else "#fc8181"
+                        verdict_bert  = "Direkomendasikan" if is_layak_bert else "Tidak Direkomendasikan"
+                        icon_bert     = "✅" if is_layak_bert else "❌"
+                        conf_bert     = int(bert_result["confidence"] * 100)
+                        st.markdown(f"""
+                        <div style="font-size:1.5rem; font-weight:800; color:{color_bert};
+                                    margin:0.5rem 0 0.6rem; letter-spacing:-0.02em;">
+                            {icon_bert} {verdict_bert}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.progress(conf_bert)
+                        st.caption(f"Tingkat Keyakinan: **{conf_bert}%**")
                     else:
                         st.info("Model pembanding tidak tersedia.")
+                st.markdown('</div>', unsafe_allow_html=True)
 
             if ai_available and bert_result["label"] and svm_label != bert_result["label"]:
-                st.info("ℹ️ Kedua model berbeda pendapat — keputusan final mengikuti Model Utama.")
+                st.markdown("""
+                <div style="background:#1a1a0d; border:1px solid #b7791f33; border-radius:10px;
+                            padding:0.8rem 1.1rem; font-size:0.82rem; color:#f6ad55; margin-top:0.5rem;">
+                    ℹ️ Kedua model memberikan hasil berbeda. <b>Keputusan final mengikuti Model Utama</b> 
+                    karena terbukti lebih akurat berdasarkan evaluasi.
+                </div>
+                """, unsafe_allow_html=True)
 
-        # ════════════════ KEPUTUSAN FINAL ════════════════
-        st.divider()
-        st.markdown("### ⚖️ Keputusan Final")
+        # ════════════════════════════════════════════
+        # KEPUTUSAN FINAL
+        # ════════════════════════════════════════════
+        st.markdown("""
+        <div class="section-header" style="margin-top:1.5rem;">
+            <span class="section-badge">HASIL</span>
+            <span class="section-title">⚖️ Hasil Penilaian Akhir</span>
+        </div>
+        """, unsafe_allow_html=True)
 
+        # Logika keputusan
         if not rubric_result["passed"]:
+            final_label  = "Tidak Direkomendasikan"
             final_reason = "rubric_failed"
         elif not ai_available:
+            final_label  = "Direkomendasikan"
             final_reason = "rubric_only"
-        elif svm_label == "Layak":
-            final_reason = "rubric_pass_ai_agree"
         else:
-            final_reason = "rubric_pass_ai_disagree"
+            # Keputusan final selalu mengikuti Model Utama (SVM)
+            if svm_label == "Layak":
+                final_label  = "Direkomendasikan"
+                final_reason = "rubric_pass_ai_agree"
+            else:
+                final_label  = "Perlu Ditinjau Ulang"
+                final_reason = "rubric_pass_ai_disagree"
 
-        badge_map = {
-            "rubric_pass_ai_agree"   : ("layak-badge",      "✅ DIREKOMENDASIKAN"),
-            "rubric_only"            : ("layak-badge",      "✅ DIREKOMENDASIKAN"),
-            "rubric_pass_ai_disagree": ("review-badge",     "⚠️ PERLU DITINJAU ULANG"),
-            "rubric_failed"          : ("tidak-layak-badge","❌ TIDAK DIREKOMENDASIKAN"),
-        }
-        badge_class, label_text = badge_map[final_reason]
+        # Decision display config
+        if final_reason == "rubric_pass_ai_agree":
+            d_class, d_lclass, d_icon, d_label = "layak", "layak", "✅", "DIREKOMENDASIKAN"
+            d_sub = "Proposal Anda memenuhi semua kriteria dan telah diverifikasi oleh sistem AI."
+        elif final_reason == "rubric_only":
+            d_class, d_lclass, d_icon, d_label = "layak", "layak", "✅", "DIREKOMENDASIKAN"
+            d_sub = "Proposal Anda lolos penilaian kelengkapan. Verifikasi AI tidak tersedia saat ini."
+        elif final_reason == "rubric_pass_ai_disagree":
+            d_class, d_lclass, d_icon, d_label = "review", "review", "⚠️", "PERLU DITINJAU ULANG"
+            d_sub = "Proposal lolos kelengkapan, namun AI menemukan kekurangan pada isi proposal. Disarankan untuk diperbaiki."
+        else:
+            d_class, d_lclass, d_icon, d_label = "tidak-layak", "tidak-layak", "❌", "TIDAK DIREKOMENDASIKAN"
+            d_sub = f"Hanya {rubric_result['total']}/5 variabel rubrikasi terpenuhi (minimum: {RUBRIC_PASS_THRESHOLD})."
 
-        col_dec, col_reason = st.columns([1, 2])
+        col_dec, col_detail = st.columns([1, 2])
+
         with col_dec:
-            st.markdown(f'<div style="text-align:center"><span class="{badge_class}">{label_text}</span></div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="decision-card {d_class}">
+                <div style="font-size:2.5rem; margin-bottom:0.4rem;">{d_icon}</div>
+                <div class="decision-label {d_lclass}">{d_label}</div>
+                <div class="decision-sub">{d_sub}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        with col_reason:
-            st.markdown("**📋 Penjelasan Hasil:**")
+        with col_detail:
+            st.markdown("**📋 Penjelasan Hasil**")
+
             if final_reason == "rubric_failed":
-                st.error(f"❌ Rubrikasi gagal: hanya {rubric_result['total']}/5 aspek terpenuhi (min {RUBRIC_PASS_THRESHOLD}). AI tidak dijalankan.")
+                st.error(f"❌ Proposal tidak memenuhi syarat kelengkapan: hanya {rubric_result['total']} dari 5 aspek terpenuhi (minimal 3 aspek).")
+                st.info("ℹ️ Penilaian AI tidak dijalankan karena proposal belum memenuhi syarat kelengkapan dasar.")
             elif final_reason == "rubric_only":
-                st.success(f"✅ Rubrikasi lolos ({rubric_result['total']}/5 aspek).")
-                st.info("ℹ️ Model AI tidak tersedia — keputusan berdasarkan rubrikasi saja.")
+                st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
+                st.info("ℹ️ Sistem AI tidak tersedia — keputusan berdasarkan kelengkapan proposal saja.")
             elif final_reason == "rubric_pass_ai_agree":
-                st.success(f"✅ Rubrikasi lolos ({rubric_result['total']}/5 aspek).")
-                st.success("✅ Model Utama mengkonfirmasi proposal layak mendapatkan sponsorship.")
-                st.info("💡 Proposal sudah lengkap dan dinilai baik. Silakan ajukan ke pihak sponsor.")
+                st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
+                st.success("✅ Sistem AI mengkonfirmasi proposal ini layak mendapatkan sponsorship.")
+                st.info("💡 Proposal Anda sudah lengkap dan dinilai baik oleh sistem kami. Silakan ajukan ke pihak sponsor.")
             elif final_reason == "rubric_pass_ai_disagree":
-                st.success(f"✅ Rubrikasi lolos ({rubric_result['total']}/5 aspek).")
-                st.warning("⚠️ Model Utama menilai isi proposal masih perlu diperkuat sebelum diajukan.")
+                st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
+                st.warning("⚠️ Sistem AI menilai isi proposal masih kurang meyakinkan.\n\nProposal sudah cukup lengkap secara struktur, namun perlu diperkuat pada bagian isi dan penjelasan. Kami sarankan untuk merevisi sebelum diajukan.")
 
             if terpenuhi:
-                st.success(f"✅ Aspek terpenuhi: {', '.join(terpenuhi)}")
+                st.success(f"✅ Aspek yang sudah terpenuhi: {', '.join(terpenuhi)}")
             if tidak_terpenuhi:
-                st.error(f"❌ Perlu dilengkapi: {', '.join(tidak_terpenuhi)}")
+                st.error(f"❌ Aspek yang perlu dilengkapi: {', '.join(tidak_terpenuhi)}")
 
+        # ── Saran Perbaikan ──
         if tidak_terpenuhi:
-            with st.expander("💡 Saran Perbaikan Proposal"):
-                for var in tidak_terpenuhi:
-                    st.markdown(f"**{var}:** {SARAN.get(var, '')}")
-
-else:
-    # ── Landing Page ──────────────────────────────────────
-    st.info("👆 Upload file PDF proposal sponsorship untuk memulai analisis.")
-
-    st.markdown("#### Alur Penilaian 2 Tahap")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-        <div class="metric-card">
-            <h2 style="font-size:2rem">📋</h2>
-            <b>Tahap 1: Penilaian Rubrikasi</b>
-            <p>5 aspek proposal diperiksa.<br>Skor &lt; 3 → langsung ditolak.</p>
-        </div>""", unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-        <div class="metric-card">
-            <h2 style="font-size:2rem">🤖</h2>
-            <b>Tahap 2: Penilaian AI</b>
-            <p>Dua model AI dijalankan otomatis.<br>Model Utama menentukan keputusan.</p>
-        </div>""", unsafe_allow_html=True)
-    with col3:
-        st.markdown("""
-        <div class="metric-card">
-            <h2 style="font-size:2rem">⚖️</h2>
-            <b>Hasil Akhir</b>
-            <p>Direkomendasikan jika rubrikasi ✅ <b>dan</b> AI ✅.<br>Konflik → perlu ditinjau ulang.</p>
-        </div>""", unsafe_allow_html=True)
+            st.markdown("""
+            <div class="section-header" style="margin-top:1rem;">
+                <span class="section-title">💡 Saran Perbaikan Proposal</span>
+            </div>
+            """, unsafe_allow_html=True)
+            for var in tidak_terpenuhi:
+                st.markdown(f"""
+                <div class="saran-box">
+                    <div class="saran-var">{VAR_ICONS.get(var,'')} {var}</div>
+                    {SARAN.get(var, '')}
+                </div>
+                """, unsafe_allow_html=True)
