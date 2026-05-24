@@ -23,14 +23,48 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    /* Background */
+    /* ── LIGHT MODE ── */
     .stApp { background-color: #f0f2f5; }
     section[data-testid="stSidebar"] {
         background-color: #f8f9fb !important;
         border-right: 1px solid #e2e5ec;
     }
 
-    /* Judul */
+    /* ── DARK MODE ── */
+    [data-theme="dark"] .stApp { background-color: #0f1117; }
+    [data-theme="dark"] section[data-testid="stSidebar"] {
+        background-color: #1a1d27 !important;
+        border-right: 1px solid #2d3143;
+    }
+    [data-theme="dark"] .metric-card {
+        background: #1e2130 !important;
+        border-color: #2d3143 !important;
+        border-top-color: #6b8cae !important;
+    }
+    [data-theme="dark"] .metric-card p { color: #9ca3af !important; }
+    [data-theme="dark"] .stage-box { background: #1e2130 !important; border-color: #2d3143 !important; }
+    [data-theme="dark"] .stage-pass { background: #0d2b1e !important; border-color: #34d399 !important; }
+    [data-theme="dark"] .stage-fail { background: #2b0d0d !important; border-color: #f87171 !important; }
+    [data-theme="dark"] .layak-badge      { background: #0d2b1e !important; color: #6ee7b7 !important; border-color: #34d399 !important; }
+    [data-theme="dark"] .tidak-layak-badge { background: #2b0d0d !important; color: #fca5a5 !important; border-color: #f87171 !important; }
+    [data-theme="dark"] .review-badge     { background: #2b1f0a !important; color: #fcd34d !important; border-color: #f59e0b !important; }
+    [data-theme="dark"] [data-testid="stExpander"] {
+        background: #1e2130 !important;
+        border-color: #2d3143 !important;
+    }
+    [data-theme="dark"] hr { border-color: #2d3143 !important; }
+    [data-theme="dark"] h1,
+    [data-theme="dark"] h2,
+    [data-theme="dark"] h3,
+    [data-theme="dark"] h4 { color: #f3f4f6 !important; }
+    [data-theme="dark"] p { color: #9ca3af !important; }
+    [data-theme="dark"] .stMarkdown p { color: #9ca3af !important; }
+    [data-theme="dark"] label { color: #9ca3af !important; }
+    [data-theme="dark"] .subtitle { color: #6b7280 !important; }
+    [data-theme="dark"] .stMetric [data-testid="stMetricValue"] { color: #f3f4f6 !important; }
+    [data-theme="dark"] .stMetric label { color: #6b7280 !important; }
+
+    /* ── SHARED (light + dark) ── */
     .main-title {
         font-size: 2.4rem; font-weight: 800;
         background: linear-gradient(135deg, #3d5a80, #6b8cae);
@@ -39,7 +73,6 @@ st.markdown("""
     }
     .subtitle { text-align: center; color: #6b7280; font-size: 0.95rem; margin-bottom: 1rem; }
 
-    /* Landing cards */
     .metric-card {
         background: #ffffff; border-radius: 14px;
         padding: 1.2rem 1rem; text-align: center;
@@ -47,10 +80,10 @@ st.markdown("""
         border-top: 3px solid #3d5a80;
         margin-bottom: 0.5rem;
         box-shadow: 0 1px 6px rgba(61,90,128,0.07);
+        transition: box-shadow 0.2s;
     }
     .metric-card p { color: #4b5563 !important; font-size: 0.88rem; }
 
-    /* Badge hasil */
     .layak-badge {
         background: #ecfdf5; color: #065f46;
         border: 1.5px solid #6ee7b7;
@@ -73,13 +106,11 @@ st.markdown("""
         display: inline-block; margin: 0.8rem 0;
     }
 
-    /* Stage boxes */
     .stage-box { border: 1.5px solid #e2e5ec; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1rem; background: #ffffff; }
     .stage-pass { border-color: #6ee7b7; background: #ecfdf5; }
     .stage-fail { border-color: #fca5a5; background: #fef2f2; }
     .stage-skip { border-color: #d1d5db; background: #f9fafb; opacity: 0.65; }
 
-    /* Tombol */
     .stButton > button {
         background: linear-gradient(135deg, #3d5a80, #6b8cae) !important;
         color: white !important; border: none !important;
@@ -91,11 +122,9 @@ st.markdown("""
     }
     .stButton > button:hover { opacity: 0.88 !important; }
 
-    /* Metric */
     .stMetric label { color: #6b7280 !important; font-size: 0.8rem !important; }
     .stMetric [data-testid="stMetricValue"] { color: #1f2937 !important; font-weight: 700 !important; }
 
-    /* Expander */
     [data-testid="stExpander"] {
         background: #ffffff !important;
         border: 1px solid #e2e5ec !important;
@@ -112,9 +141,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<div style="background:#ffffff;border:1px solid #e2e5ec;border-radius:16px;
+<div style="background:var(--background-color, #ffffff);border:1px solid rgba(128,128,128,0.2);border-radius:16px;
             padding:2rem 1.5rem 1.5rem;margin-bottom:1.5rem;
-            box-shadow:0 2px 12px rgba(90,103,216,0.06);">
+            box-shadow:0 2px 12px rgba(61,90,128,0.07);">
     <p class="main-title">🎯 SponsorSmart AI</p>
     <p class="subtitle">Sistem Pendukung Keputusan — Penilaian Kelayakan Proposal Sponsorship</p>
     <div style="text-align:center;margin-top:0.8rem;">
@@ -338,8 +367,8 @@ with st.sidebar:
         tokenizer_check, model_check = load_bert_model()
         svm_check                    = load_svm_model()
 
-    st.markdown(f'<div style="background:#f1f3f7;border:1px solid #e2e5ec;border-radius:8px;padding:0.5rem 0.8rem;margin-bottom:0.4rem;font-size:0.85rem;">{"🟢" if svm_check else "🔴"} <b>Model Utama</b> — {"Siap" if svm_check else "Tidak ditemukan"}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div style="background:#f1f3f7;border:1px solid #e2e5ec;border-radius:8px;padding:0.5rem 0.8rem;margin-bottom:0.4rem;font-size:0.85rem;">{"🟢" if tokenizer_check else "🔴"} <b>Model Pembanding</b> — {"Siap" if tokenizer_check else "Tidak ditemukan"}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="background:rgba(128,128,128,0.08);border:1px solid rgba(128,128,128,0.18);border-radius:8px;padding:0.5rem 0.8rem;margin-bottom:0.4rem;font-size:0.85rem;">{"🟢" if svm_check else "🔴"} <b>Model Utama</b> — {"Siap" if svm_check else "Tidak ditemukan"}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="background:rgba(128,128,128,0.08);border:1px solid rgba(128,128,128,0.18);border-radius:8px;padding:0.5rem 0.8rem;margin-bottom:0.4rem;font-size:0.85rem;">{"🟢" if tokenizer_check else "🔴"} <b>Model Pembanding</b> — {"Siap" if tokenizer_check else "Tidak ditemukan"}</div>', unsafe_allow_html=True)
 
     if tokenizer_check is None and svm_check is None:
         st.warning("⚠️ Semua model offline.\nHanya Penilaian Rubrikasi yang aktif.")
@@ -470,8 +499,8 @@ if uploaded_file is not None:
         if not rubric_result["passed"]:
             # Rubric gagal → tampilkan info, skip AI
             st.markdown(
-                '<div class="stage-skip" style="border:1.5px solid #d1d5db;border-radius:12px;'
-                'padding:1rem;background:#f9fafb;opacity:0.7;">'
+                '<div class="stage-skip" style="border:1.5px solid rgba(128,128,128,0.3);border-radius:12px;'
+                'padding:1rem;background:rgba(128,128,128,0.07);opacity:0.8;">'
                 '⏭️ <b>AI tidak dijalankan</b> — proposal sudah gugur di Tahap 1 (Penilaian Rubrikasi gagal).'
                 '</div>',
                 unsafe_allow_html=True
