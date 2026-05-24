@@ -16,39 +16,40 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Custom CSS — Premium Dark Theme ──────────────────
+# ── Custom CSS — Clean Light Theme ───────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
 
     /* ── Reset & Base ── */
     html, body, [class*="css"] {
-        font-family: 'Sora', sans-serif !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     .stApp {
-        background: #0a0d14;
+        background: #f5f7fa;
     }
     section[data-testid="stSidebar"] {
-        background: #0d1117 !important;
-        border-right: 1px solid #1e2533;
+        background: #ffffff !important;
+        border-right: 1px solid #e8ecf0;
     }
 
     /* ── Header ── */
     .hero-wrapper {
-        background: linear-gradient(135deg, #0f1923 0%, #0a0d14 60%, #111827 100%);
-        border: 1px solid #1e2a3a;
+        background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+        border: 1px solid #dde3f0;
         border-radius: 20px;
         padding: 2.5rem 2rem 2rem;
         margin-bottom: 1.5rem;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 2px 12px rgba(99,102,241,0.06);
     }
     .hero-wrapper::before {
         content: '';
         position: absolute;
-        top: -60px; right: -60px;
+        top: -60px; right: -40px;
         width: 220px; height: 220px;
-        background: radial-gradient(circle, rgba(99,179,237,0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
         border-radius: 50%;
     }
     .hero-wrapper::after {
@@ -56,30 +57,30 @@ st.markdown("""
         position: absolute;
         bottom: -40px; left: 30px;
         width: 150px; height: 150px;
-        background: radial-gradient(circle, rgba(167,243,208,0.08) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%);
         border-radius: 50%;
     }
     .main-title {
         font-size: 2.6rem;
         font-weight: 800;
         letter-spacing: -0.04em;
-        background: linear-gradient(90deg, #63b3ed 0%, #9ae6b4 60%, #fbd38d 100%);
+        background: linear-gradient(90deg, #4f46e5 0%, #0ea5e9 60%, #10b981 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.4rem;
         line-height: 1.1;
     }
     .subtitle {
-        color: #718096;
+        color: #64748b;
         font-size: 0.95rem;
         font-weight: 400;
         letter-spacing: 0.01em;
     }
     .hero-badge {
         display: inline-block;
-        background: rgba(99,179,237,0.12);
-        border: 1px solid rgba(99,179,237,0.3);
-        color: #63b3ed;
+        background: rgba(79,70,229,0.08);
+        border: 1px solid rgba(79,70,229,0.2);
+        color: #4f46e5;
         font-size: 0.7rem;
         font-weight: 600;
         padding: 0.3rem 0.8rem;
@@ -87,54 +88,59 @@ st.markdown("""
         margin-bottom: 1rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'DM Mono', monospace !important;
     }
 
     /* ── Stage Cards (landing) ── */
     .stage-card {
-        background: #0f1923;
-        border: 1px solid #1e2a3a;
+        background: #ffffff;
+        border: 1px solid #e8ecf0;
         border-radius: 16px;
         padding: 1.6rem 1.4rem;
         text-align: center;
         position: relative;
-        transition: border-color 0.2s;
+        transition: all 0.2s;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.04);
     }
-    .stage-card:hover { border-color: #63b3ed55; }
+    .stage-card:hover {
+        border-color: #4f46e5;
+        box-shadow: 0 4px 16px rgba(79,70,229,0.1);
+        transform: translateY(-2px);
+    }
     .stage-icon { font-size: 2rem; margin-bottom: 0.8rem; }
     .stage-title {
         font-size: 0.95rem; font-weight: 700;
-        color: #e2e8f0; margin-bottom: 0.5rem;
+        color: #1e293b; margin-bottom: 0.5rem;
     }
-    .stage-desc { font-size: 0.82rem; color: #718096; line-height: 1.5; }
+    .stage-desc { font-size: 0.82rem; color: #64748b; line-height: 1.5; }
     .stage-num {
         position: absolute; top: 12px; right: 14px;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.7rem; font-weight: 600;
-        color: #4a5568;
+        font-family: 'DM Mono', monospace !important;
+        font-size: 0.7rem; font-weight: 500;
+        color: #cbd5e1;
     }
 
     /* ── Upload Zone ── */
     .upload-wrapper {
-        background: #0f1923;
-        border: 1.5px dashed #2d3748;
+        background: #ffffff;
+        border: 1.5px dashed #cbd5e1;
         border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1rem;
         transition: border-color 0.2s;
     }
-    .upload-wrapper:hover { border-color: #63b3ed55; }
+    .upload-wrapper:hover { border-color: #4f46e5; }
 
     /* ── Info Pill ── */
     .info-pill {
         display: inline-flex; align-items: center; gap: 0.4rem;
-        background: rgba(99,179,237,0.08);
-        border: 1px solid rgba(99,179,237,0.2);
+        background: #f0f4ff;
+        border: 1px solid #dde3f0;
         border-radius: 8px;
         padding: 0.5rem 0.9rem;
-        font-size: 0.82rem; color: #a0aec0;
+        font-size: 0.82rem; color: #4f46e5;
         margin: 0.2rem;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'DM Mono', monospace !important;
     }
 
     /* ── Section Headers ── */
@@ -143,20 +149,20 @@ st.markdown("""
         margin: 1.5rem 0 1rem;
     }
     .section-badge {
-        background: rgba(99,179,237,0.15);
-        color: #63b3ed;
-        border: 1px solid rgba(99,179,237,0.35);
+        background: #ede9fe;
+        color: #4f46e5;
+        border: 1px solid #c4b5fd;
         border-radius: 6px;
         padding: 0.25rem 0.6rem;
         font-size: 0.7rem;
         font-weight: 700;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'DM Mono', monospace !important;
         letter-spacing: 0.05em;
     }
     .section-title {
         font-size: 1.15rem;
         font-weight: 700;
-        color: #e2e8f0;
+        color: #1e293b;
     }
 
     /* ── Variabel Cards ── */
@@ -169,21 +175,21 @@ st.markdown("""
     }
     .var-card:hover { transform: translateY(-2px); }
     .var-card.pass {
-        background: linear-gradient(160deg, #0f2319 0%, #0d1f17 100%);
-        border-color: #276749;
+        background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: #86efac;
     }
     .var-card.fail {
-        background: linear-gradient(160deg, #2d1515 0%, #1f0e0e 100%);
-        border-color: #9b2335;
+        background: linear-gradient(160deg, #fff1f2 0%, #ffe4e6 100%);
+        border-color: #fca5a5;
     }
-    .var-name { font-size: 0.8rem; font-weight: 600; color: #a0aec0; margin: 0.4rem 0; }
+    .var-name { font-size: 0.8rem; font-weight: 600; color: #475569; margin: 0.4rem 0; }
     .var-status { font-size: 1.4rem; font-weight: 800; }
-    .var-status.pass { color: #48bb78; }
-    .var-status.fail { color: #fc8181; }
+    .var-status.pass { color: #16a34a; }
+    .var-status.fail { color: #dc2626; }
     .var-score {
         font-size: 0.7rem;
-        font-family: 'JetBrains Mono', monospace !important;
-        color: #718096;
+        font-family: 'DM Mono', monospace !important;
+        color: #94a3b8;
         margin-top: 0.3rem;
     }
 
@@ -199,28 +205,29 @@ st.markdown("""
         gap: 0.8rem;
     }
     .rubric-summary.pass {
-        background: linear-gradient(90deg, #0f2319 0%, #0d1f17 100%);
-        border: 1px solid #276749;
-        color: #68d391;
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        color: #15803d;
     }
     .rubric-summary.fail {
-        background: linear-gradient(90deg, #2d1515 0%, #1f0e0e 100%);
-        border: 1px solid #9b2335;
-        color: #fc8181;
+        background: #fff1f2;
+        border: 1px solid #fca5a5;
+        color: #dc2626;
     }
 
     /* ── AI Model Cards ── */
     .model-card {
-        background: #0f1923;
-        border: 1px solid #1e2a3a;
+        background: #ffffff;
+        border: 1px solid #e8ecf0;
         border-radius: 14px;
         padding: 1.4rem;
         height: 100%;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.04);
     }
     .model-name {
         font-size: 0.85rem; font-weight: 700;
-        color: #a0aec0; margin-bottom: 1rem;
-        font-family: 'JetBrains Mono', monospace !important;
+        color: #64748b; margin-bottom: 1rem;
+        font-family: 'DM Mono', monospace !important;
     }
 
     /* ── Final Decision ── */
@@ -231,16 +238,16 @@ st.markdown("""
         margin: 1rem 0;
     }
     .decision-card.layak {
-        background: linear-gradient(160deg, #0f2319 0%, #0d1a13 100%);
-        border: 2px solid #276749;
+        background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 2px solid #4ade80;
     }
     .decision-card.tidak-layak {
-        background: linear-gradient(160deg, #2d1515 0%, #1a0d0d 100%);
-        border: 2px solid #9b2335;
+        background: linear-gradient(160deg, #fff1f2 0%, #ffe4e6 100%);
+        border: 2px solid #f87171;
     }
     .decision-card.review {
-        background: linear-gradient(160deg, #2d2415 0%, #1a1709 100%);
-        border: 2px solid #b7791f;
+        background: linear-gradient(160deg, #fffbeb 0%, #fef3c7 100%);
+        border: 2px solid #fbbf24;
     }
     .decision-label {
         font-size: 2rem;
@@ -248,72 +255,73 @@ st.markdown("""
         letter-spacing: -0.03em;
         margin-bottom: 0.4rem;
     }
-    .decision-label.layak { color: #68d391; }
-    .decision-label.tidak-layak { color: #fc8181; }
-    .decision-label.review { color: #f6ad55; }
+    .decision-label.layak { color: #15803d; }
+    .decision-label.tidak-layak { color: #dc2626; }
+    .decision-label.review { color: #b45309; }
     .decision-sub {
         font-size: 0.85rem;
-        color: #718096;
+        color: #64748b;
     }
 
     /* ── Saran Box ── */
     .saran-box {
-        background: #0f1923;
-        border: 1px solid #1e2a3a;
-        border-left: 3px solid #f6ad55;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-left: 3px solid #f59e0b;
         border-radius: 10px;
         padding: 0.9rem 1.1rem;
         margin: 0.4rem 0;
         font-size: 0.87rem;
-        color: #cbd5e0;
+        color: #44403c;
     }
     .saran-var {
         font-weight: 700;
-        color: #f6ad55;
+        color: #b45309;
         font-size: 0.82rem;
         margin-bottom: 0.2rem;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'DM Mono', monospace !important;
     }
 
     /* ── Sidebar Styling ── */
     .sidebar-status-row {
         display: flex; align-items: center; gap: 0.6rem;
         padding: 0.6rem 0.8rem;
-        background: #0f1923;
+        background: #f8fafc;
         border-radius: 8px;
         margin-bottom: 0.5rem;
-        border: 1px solid #1e2a3a;
+        border: 1px solid #e8ecf0;
         font-size: 0.85rem;
-        color: #cbd5e0;
+        color: #334155;
     }
-    .dot-green { color: #48bb78; }
-    .dot-red   { color: #fc8181; }
+    .dot-green { color: #16a34a; }
+    .dot-red   { color: #dc2626; }
 
     /* ── Override Streamlit defaults ── */
     .stButton > button {
-        background: linear-gradient(90deg, #2b6cb0, #2c7a7b) !important;
+        background: linear-gradient(90deg, #4f46e5, #0ea5e9) !important;
         color: white !important;
         border: none !important;
         border-radius: 10px !important;
-        font-family: 'Sora', sans-serif !important;
-        font-weight: 600 !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-weight: 700 !important;
         font-size: 1rem !important;
         padding: 0.75rem 1.5rem !important;
         transition: opacity 0.2s !important;
         letter-spacing: 0.01em !important;
+        box-shadow: 0 4px 12px rgba(79,70,229,0.25) !important;
     }
-    .stButton > button:hover { opacity: 0.88 !important; }
-    .stRadio label { color: #a0aec0 !important; font-size: 0.88rem !important; }
-    .stMetric label { color: #718096 !important; font-size: 0.8rem !important; }
-    .stMetric [data-testid="stMetricValue"] { color: #e2e8f0 !important; font-family: 'JetBrains Mono', monospace !important; }
-    [data-testid="stExpander"] { background: #0f1923 !important; border: 1px solid #1e2a3a !important; border-radius: 10px !important; }
+    .stButton > button:hover { opacity: 0.9 !important; }
+    .stRadio label { color: #334155 !important; font-size: 0.88rem !important; }
+    .stMetric label { color: #64748b !important; font-size: 0.8rem !important; }
+    .stMetric [data-testid="stMetricValue"] { color: #1e293b !important; font-family: 'DM Mono', monospace !important; }
+    [data-testid="stExpander"] { background: #ffffff !important; border: 1px solid #e8ecf0 !important; border-radius: 10px !important; }
     div[data-testid="stFileUploader"] { background: transparent; }
     .stAlert { border-radius: 10px !important; }
-    hr { border-color: #1e2a3a !important; }
-    h1,h2,h3,h4 { color: #e2e8f0 !important; font-family: 'Sora', sans-serif !important; }
-    p, li { color: #a0aec0 !important; }
-    .stMarkdown p { color: #a0aec0 !important; }
-    label { color: #a0aec0 !important; }
+    hr { border-color: #e8ecf0 !important; }
+    h1,h2,h3,h4 { color: #1e293b !important; font-family: 'Plus Jakarta Sans', sans-serif !important; }
+    p, li { color: #475569 !important; }
+    .stMarkdown p { color: #475569 !important; }
+    label { color: #475569 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -516,27 +524,27 @@ def render_score_chart(scores: dict):
     colors = ["#48bb78" if v == 1 else "#fc8181" for v in vals]
 
     fig, ax = plt.subplots(figsize=(8, 3))
-    fig.patch.set_facecolor('#0f1923')
-    ax.set_facecolor('#0f1923')
+    fig.patch.set_facecolor('#ffffff')
+    ax.set_facecolor('#f8fafc')
 
     bars = ax.barh(vars_, vals, color=colors, edgecolor='none', height=0.45)
     ax.set_xlim(0, 1.5)
-    ax.set_xlabel("Skor (0 = Tidak Terpenuhi, 1 = Terpenuhi)", color='#718096', fontsize=9)
-    ax.set_title("Skor Tiap Variabel — Penilaian Rubrikasi", color='#e2e8f0', fontsize=11, fontweight='bold', pad=12)
-    ax.tick_params(colors='#a0aec0')
+    ax.set_xlabel("Skor (0 = Tidak Terpenuhi, 1 = Terpenuhi)", color='#64748b', fontsize=9)
+    ax.set_title("Skor Tiap Variabel — Penilaian Rubrikasi", color='#1e293b', fontsize=11, fontweight='bold', pad=12)
+    ax.tick_params(colors='#475569')
     for spine in ax.spines.values():
-        spine.set_edgecolor('#1e2a3a')
+        spine.set_edgecolor('#e2e8f0')
 
     for bar, val in zip(bars, vals):
         lbl = "✓ Terpenuhi" if val == 1 else "✗ Tidak"
         ax.text(val + 0.05, bar.get_y() + bar.get_height() / 2,
                 lbl, va="center", fontsize=9, fontweight="bold",
-                color="#48bb78" if val == 1 else "#fc8181")
+                color="#16a34a" if val == 1 else "#dc2626")
 
-    green = mpatches.Patch(color="#48bb78", label="Terpenuhi (1)")
-    red   = mpatches.Patch(color="#fc8181", label="Tidak Terpenuhi (0)")
+    green = mpatches.Patch(color="#16a34a", label="Terpenuhi (1)")
+    red   = mpatches.Patch(color="#dc2626", label="Tidak Terpenuhi (0)")
     legend = ax.legend(handles=[green, red], loc="lower right",
-                       facecolor='#0d1117', edgecolor='#1e2a3a', labelcolor='#a0aec0')
+                       facecolor='#ffffff', edgecolor='#e2e8f0', labelcolor='#475569')
     plt.tight_layout()
     return fig
 
@@ -547,12 +555,12 @@ with st.sidebar:
     st.markdown("""
     <div style="text-align:center; padding: 1rem 0 0.5rem;">
         <div style="font-size:2.5rem">🎯</div>
-        <div style="font-family:'Sora',sans-serif; font-weight:800; font-size:1.1rem;
-                    background:linear-gradient(90deg,#63b3ed,#9ae6b4);
+        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.1rem;
+                    background:linear-gradient(90deg,#4f46e5,#0ea5e9);
                     -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             SponsorSmart
         </div>
-        <div style="font-size:0.72rem; color:#4a5568; margin-top:0.2rem; letter-spacing:0.05em;">
+        <div style="font-size:0.72rem; color:#94a3b8; margin-top:0.2rem; letter-spacing:0.05em;">
             v2.0 · Kelompok 2 · Telkom University
         </div>
     </div>
@@ -589,13 +597,13 @@ with st.sidebar:
     st.divider()
     st.markdown("**📖 Cara Kerja Penilaian**")
     st.markdown('''
-    <div style="font-size:0.82rem; color:#718096; line-height:1.8;">
-    <b style="color:#63b3ed;">Tahap 1 — Cek Kelengkapan Proposal</b><br>
+    <div style="font-size:0.82rem; color:#64748b; line-height:1.8;">
+    <b style="color:#4f46e5;">Tahap 1 — Cek Kelengkapan Proposal</b><br>
     Sistem memeriksa 5 aspek penting secara otomatis.<br>
     Kurang dari 3 aspek → ❌ Proposal ditolak.<br><br>
-    <b style="color:#63b3ed;">Tahap 2 — Penilaian AI</b><br>
+    <b style="color:#4f46e5;">Tahap 2 — Penilaian AI</b><br>
     Proposal yang lolos dinilai lebih dalam oleh AI.<br><br>
-    <b style="color:#e2e8f0;">Hasil Akhir:</b><br>
+    <b style="color:#1e293b;">Hasil Akhir:</b><br>
     ✅ <b style="color:#68d391;">Direkomendasikan</b> = Lolos semua penilaian<br>
     ⚠️ <b style="color:#f6ad55;">Perlu Ditinjau</b> = Ada ketidaksesuaian<br>
     ❌ <b style="color:#fc8181;">Tidak Direkomendasikan</b> = Tidak lolos
@@ -621,9 +629,9 @@ uploaded_file = st.file_uploader(
 if uploaded_file is None:
     # ── Landing Info ──────────────────────────────────
     st.markdown("""
-    <div style="background:#0f1923; border:1px solid #1e2a3a; border-radius:14px;
-                padding:1.4rem 1.6rem; margin-top:0.5rem; margin-bottom:1.5rem;">
-        <div style="font-size:0.82rem; color:#718096; margin-bottom:0.8rem;">
+    <div style="background:#ffffff; border:1px solid #e8ecf0; border-radius:14px;
+                padding:1.4rem 1.6rem; margin-top:0.5rem; margin-bottom:1.5rem; box-shadow:0 1px 6px rgba(0,0,0,0.04);">
+        <div style="font-size:0.82rem; color:#64748b; margin-bottom:0.8rem;">
             📎 Upload file PDF proposal Anda di atas untuk memulai analisis otomatis.
         </div>
         <div>
@@ -678,11 +686,11 @@ if uploaded_file is None:
     for col, (icon, name, desc) in zip(rubric_cols, rubric_info):
         with col:
             st.markdown(f"""
-            <div style="background:#0f1923; border:1px solid #1e2a3a; border-radius:12px;
+            <div style="background:#ffffff; border:1px solid #e8ecf0; border-radius:12px;
                         padding:1rem 0.8rem; text-align:center;">
                 <div style="font-size:1.6rem;">{icon}</div>
-                <div style="font-weight:700; font-size:0.85rem; color:#e2e8f0; margin:0.4rem 0 0.3rem;">{name}</div>
-                <div style="font-size:0.75rem; color:#718096; line-height:1.4;">{desc}</div>
+                <div style="font-weight:700; font-size:0.85rem; color:#1e293b; margin:0.4rem 0 0.3rem;">{name}</div>
+                <div style="font-size:0.75rem; color:#64748b; line-height:1.4;">{desc}</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -783,9 +791,9 @@ else:
 
         if not rubric_result["passed"]:
             st.markdown("""
-            <div style="background:#0f1923; border:1px solid #2d3748; border-radius:12px;
-                        padding:1.2rem 1.4rem; color:#718096; font-size:0.9rem;">
-                ⏭️ <b style="color:#a0aec0;">Penilaian AI dilewati</b> — Proposal tidak memenuhi 
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;
+                        padding:1.2rem 1.4rem; color:#64748b; font-size:0.9rem;">
+                ⏭️ <b style="color:#475569;">Penilaian AI dilewati</b> — Proposal tidak memenuhi 
                 syarat kelengkapan dasar. Penilaian AI tidak perlu dijalankan.
             </div>
             """, unsafe_allow_html=True)
@@ -795,7 +803,7 @@ else:
             # ── Model Utama: SVM (penentu keputusan) ──
             with col_svm:
                 st.markdown('<div class="model-card">', unsafe_allow_html=True)
-                st.markdown('''<div class="model-name">⭐ Model Utama <span style="font-size:0.65rem;color:#f6ad55;margin-left:4px;">PENENTU KEPUTUSAN</span></div>''', unsafe_allow_html=True)
+                st.markdown('''<div class="model-name">⭐ Model Utama <span style="font-size:0.65rem;color:#4f46e5;background:#ede9fe;padding:1px 6px;border-radius:4px;margin-left:4px;">PENENTU KEPUTUSAN</span></div>''', unsafe_allow_html=True)
                 with st.spinner("Menilai proposal..."):
                     svm_model = load_svm_model()
                     if svm_model:
@@ -804,7 +812,7 @@ else:
                         svm_prob     = svm_model.predict_proba([full_text])[0]
                         svm_conf     = int(max(svm_prob) * 100)
                         is_layak     = svm_label == "Layak"
-                        color        = "#48bb78" if is_layak else "#fc8181"
+                        color        = "#16a34a" if is_layak else "#dc2626"
                         verdict_text = "Direkomendasikan" if is_layak else "Tidak Direkomendasikan"
                         verdict_icon = "✅" if is_layak else "❌"
                         st.markdown(f"""
@@ -822,13 +830,13 @@ else:
             # ── Model Pembanding: IndoBERT (hanya informasi) ──
             with col_bert:
                 st.markdown('<div class="model-card">', unsafe_allow_html=True)
-                st.markdown('''<div class="model-name">🔬 Model Pembanding <span style="font-size:0.65rem;color:#718096;margin-left:4px;">REFERENSI</span></div>''', unsafe_allow_html=True)
+                st.markdown('''<div class="model-name">🔬 Model Pembanding <span style="font-size:0.65rem;color:#64748b;background:#f1f5f9;padding:1px 6px;border-radius:4px;margin-left:4px;">REFERENSI</span></div>''', unsafe_allow_html=True)
                 with st.spinner("Menilai proposal (pembanding)..."):
                     tokenizer, bert_model = load_bert_model()
                     bert_result           = predict_bert(full_text, tokenizer, bert_model)
                     if bert_result["label"]:
                         is_layak_bert = bert_result["label"] == "Layak"
-                        color_bert    = "#48bb78" if is_layak_bert else "#fc8181"
+                        color_bert    = "#16a34a" if is_layak_bert else "#dc2626"
                         verdict_bert  = "Direkomendasikan" if is_layak_bert else "Tidak Direkomendasikan"
                         icon_bert     = "✅" if is_layak_bert else "❌"
                         conf_bert     = int(bert_result["confidence"] * 100)
@@ -846,8 +854,8 @@ else:
 
             if ai_available and bert_result["label"] and svm_label != bert_result["label"]:
                 st.markdown("""
-                <div style="background:#1a1a0d; border:1px solid #b7791f33; border-radius:10px;
-                            padding:0.8rem 1.1rem; font-size:0.82rem; color:#f6ad55; margin-top:0.5rem;">
+                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px;
+                            padding:0.8rem 1.1rem; font-size:0.82rem; color:#b45309; margin-top:0.5rem;">
                     ℹ️ Kedua model memberikan hasil berbeda. <b>Keputusan final mengikuti Model Utama</b> 
                     karena terbukti lebih akurat berdasarkan evaluasi.
                 </div>
