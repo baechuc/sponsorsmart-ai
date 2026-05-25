@@ -737,11 +737,8 @@ else:
                     <div style="font-size:1.5rem">{VAR_ICONS[var]}</div>
                     <div class="var-name">{var}</div>
                     <div class="var-status {css_class}">{status}</div>
-                    <div class="var-score">Skor: {score}/1</div>
                 </div>
                 """, unsafe_allow_html=True)
-
-        st.pyplot(render_score_chart(rubric_result["scores"]))
 
         terpenuhi       = [v for v, s in rubric_result["scores"].items() if s == 1]
         tidak_terpenuhi = [v for v, s in rubric_result["scores"].items() if s == 0]
