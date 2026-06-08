@@ -594,7 +594,7 @@ with st.sidebar:
     Sistem memeriksa 5 aspek penting secara otomatis.<br>
     Kurang dari 3 aspek → ❌ Proposal ditolak.<br><br>
     <b style="color:#63b3ed;">Tahap 2 — Penilaian AI</b><br>
-    Proposal yang lolos dinilai lebih dalam oleh AI.<br><br>
+    Proposal yang lolos dinilai lebih dalam oleh Sistem.<br><br>
     <b style="color:#e2e8f0;">Hasil Akhir:</b><br>
     ✅ <b style="color:#68d391;">Direkomendasikan</b> = Lolos semua penilaian<br>
     ⚠️ <b style="color:#f6ad55;">Perlu Ditinjau</b> = Ada ketidaksesuaian<br>
