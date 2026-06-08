@@ -1,4 +1,4 @@
-# 🎯 SponsorSmart AI
+# 🎯 SponsorSmart 
 
 > Sistem Pendukung Keputusan (SPK) otomatis berbasis Deep Learning  
 > untuk klasifikasi kelayakan proposal sponsorship tidak terstruktur.
