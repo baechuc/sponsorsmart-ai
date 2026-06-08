@@ -10,7 +10,7 @@ import pickle
 
 # ── Konfigurasi Halaman ──────────────────────────────
 st.set_page_config(
-    page_title="SponsorSmart AI",
+    page_title="SponsorSmart",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
