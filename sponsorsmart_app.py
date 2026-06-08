@@ -321,7 +321,7 @@ st.markdown("""
 st.markdown("""
 <div class="hero-wrapper">
     <div class="hero-badge">🤖 Machine Learning · NLP · SVM + TF-IDF</div>
-    <div class="main-title">🎯 SponsorSmart AI</div>
+    <div class="main-title">🎯 SponsorSmart </div>
     <div class="subtitle">Sistem Pendukung Keputusan — Penilaian Kelayakan Proposal Sponsorship secara Otomatis & Transparan</div>
 </div>
 """, unsafe_allow_html=True)
@@ -561,7 +561,7 @@ with st.sidebar:
     st.divider()
 
     st.divider()
-    st.markdown("**🔌 Status Sistem AI**")
+    st.markdown("**🔌 Status Sistem Penilaian Otomatis**")
 
     with st.spinner("Memeriksa status..."):
         tokenizer_check, model_check = load_bert_model()
@@ -764,12 +764,12 @@ else:
                 st.markdown(f"{icon} **{var}**: `{evid_str}`")
 
         # ════════════════════════════════════════════
-        # TAHAP 2: VERIFIKASI AI
+        # TAHAP 2: VERIFIKASI OTOMATIS 
         # ════════════════════════════════════════════
         st.markdown("""
         <div class="section-header" style="margin-top:1.5rem;">
             <span class="section-badge">TAHAP 2</span>
-            <span class="section-title">🤖 Penilaian AI</span>
+            <span class="section-title">🤖 Penilaian Otomatis</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -882,7 +882,7 @@ else:
             d_sub = "Proposal Anda memenuhi semua kriteria dan telah diverifikasi oleh sistem AI."
         elif final_reason == "rubric_only":
             d_class, d_lclass, d_icon, d_label = "layak", "layak", "✅", "DIREKOMENDASIKAN"
-            d_sub = "Proposal Anda lolos penilaian kelengkapan. Verifikasi AI tidak tersedia saat ini."
+            d_sub = "Proposal Anda lolos penilaian kelengkapan. Verifikasi Otomatis tidak tersedia saat ini."
         elif final_reason == "rubric_pass_ai_disagree":
             d_class, d_lclass, d_icon, d_label = "review", "review", "⚠️", "PERLU DITINJAU ULANG"
             d_sub = "Proposal lolos kelengkapan, namun AI menemukan kekurangan pada isi proposal. Disarankan untuk diperbaiki."
@@ -912,11 +912,11 @@ else:
                 st.info("ℹ️ Sistem AI tidak tersedia — keputusan berdasarkan kelengkapan proposal saja.")
             elif final_reason == "rubric_pass_ai_agree":
                 st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
-                st.success("✅ Sistem AI mengkonfirmasi proposal ini layak mendapatkan sponsorship.")
+                st.success("✅ Sistem Otomatis mengkonfirmasi proposal ini layak mendapatkan sponsorship.")
                 st.info("💡 Proposal Anda sudah lengkap dan dinilai baik oleh sistem kami. Silakan ajukan ke pihak sponsor.")
             elif final_reason == "rubric_pass_ai_disagree":
                 st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
-                st.warning("⚠️ Sistem AI menilai isi proposal masih kurang meyakinkan.\n\nProposal sudah cukup lengkap secara struktur, namun perlu diperkuat pada bagian isi dan penjelasan. Kami sarankan untuk merevisi sebelum diajukan.")
+                st.warning("⚠️ Sistem Otomatis menilai isi proposal masih kurang meyakinkan.\n\nProposal sudah cukup lengkap secara struktur, namun perlu diperkuat pada bagian isi dan penjelasan. Kami sarankan untuk merevisi sebelum diajukan.")
 
             if terpenuhi:
                 st.success(f"✅ Aspek yang sudah terpenuhi: {', '.join(terpenuhi)}")
