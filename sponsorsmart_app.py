@@ -645,10 +645,10 @@ if uploaded_file is None:
     cards = [
         ("01", "📋", "Penilaian Rubrikasi",
          "5 variabel keyword diperiksa secara otomatis. Skor < 3 dari 5 → proposal langsung ditolak."),
-        ("02", "🤖", "Verifikasi AI",
+        ("02", "🤖", "Verifikasi Otomatis",
          "Proposal yang lolos kelengkapan dinilai oleh dua model AI. Keputusan final ditentukan oleh model terbaik."),
         ("03", "⚖️", "Keputusan Final",
-         "Layak jika rubrik ✅ dan AI ✅. Konflik antara keduanya → rekomendasi review manual."),
+         "Direkomendasikan jika rubrik ✅ dan Penilaian otomatis ✅. Konflik antara keduanya → rekomendasi review manual."),
     ]
     for col, (num, icon, title, desc) in zip([col1, col2, col3], cards):
         with col:
