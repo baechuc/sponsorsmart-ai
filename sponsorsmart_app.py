@@ -646,7 +646,7 @@ if uploaded_file is None:
         ("01", "📋", "Penilaian Rubrikasi",
          "5 variabel keyword diperiksa secara otomatis. Skor < 3 dari 5 → proposal langsung ditolak."),
         ("02", "🤖", "Verifikasi Otomatis",
-         "Proposal yang lolos kelengkapan dinilai oleh dua model AI. Keputusan final ditentukan oleh model terbaik."),
+         "Proposal yang lolos kelengkapan dinilai oleh dua model. Keputusan final ditentukan oleh model terbaik."),
         ("03", "⚖️", "Keputusan Final",
          "Direkomendasikan jika rubrik ✅ dan Penilaian otomatis ✅. Konflik antara keduanya → rekomendasi review manual."),
     ]
@@ -879,13 +879,13 @@ else:
         # Decision display config
         if final_reason == "rubric_pass_ai_agree":
             d_class, d_lclass, d_icon, d_label = "layak", "layak", "✅", "DIREKOMENDASIKAN"
-            d_sub = "Proposal Anda memenuhi semua kriteria dan telah diverifikasi oleh sistem AI."
+            d_sub = "Proposal Anda memenuhi semua kriteria dan telah diverifikasi oleh sistem otomatis."
         elif final_reason == "rubric_only":
             d_class, d_lclass, d_icon, d_label = "layak", "layak", "✅", "DIREKOMENDASIKAN"
             d_sub = "Proposal Anda lolos penilaian kelengkapan. Verifikasi Otomatis tidak tersedia saat ini."
         elif final_reason == "rubric_pass_ai_disagree":
             d_class, d_lclass, d_icon, d_label = "review", "review", "⚠️", "PERLU DITINJAU ULANG"
-            d_sub = "Proposal lolos kelengkapan, namun AI menemukan kekurangan pada isi proposal. Disarankan untuk diperbaiki."
+            d_sub = "Proposal lolos kelengkapan, namun sistem menemukan kekurangan pada isi proposal. Disarankan untuk diperbaiki."
         else:
             d_class, d_lclass, d_icon, d_label = "tidak-layak", "tidak-layak", "❌", "TIDAK DIREKOMENDASIKAN"
             d_sub = f"Hanya {rubric_result['total']}/5 variabel rubrikasi terpenuhi (minimum: {RUBRIC_PASS_THRESHOLD})."
@@ -906,7 +906,7 @@ else:
 
             if final_reason == "rubric_failed":
                 st.error(f"❌ Proposal tidak memenuhi syarat kelengkapan: hanya {rubric_result['total']} dari 5 aspek terpenuhi (minimal 3 aspek).")
-                st.info("ℹ️ Penilaian AI tidak dijalankan karena proposal belum memenuhi syarat kelengkapan dasar.")
+                st.info("ℹ️ Penilaian Otomatis tidak dijalankan karena proposal belum memenuhi syarat kelengkapan dasar.")
             elif final_reason == "rubric_only":
                 st.success(f"✅ Proposal memenuhi {rubric_result['total']} dari 5 aspek kelengkapan.")
                 st.info("ℹ️ Sistem AI tidak tersedia — keputusan berdasarkan kelengkapan proposal saja.")
