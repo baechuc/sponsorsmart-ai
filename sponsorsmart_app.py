@@ -584,7 +584,7 @@ with st.sidebar:
     ''', unsafe_allow_html=True)
 
     if svm_check is None and tokenizer_check is None:
-        st.warning("⚠️ Sistem AI tidak tersedia. Hanya Penilaian Rubrikasi yang aktif.")
+        st.warning("⚠️ Sistem Otomatis tidak tersedia. Hanya Penilaian Rubrikasi yang aktif.")
 
     st.divider()
     st.markdown("**📖 Cara Kerja Penilaian**")
@@ -593,7 +593,7 @@ with st.sidebar:
     <b style="color:#63b3ed;">Tahap 1 — Cek Kelengkapan Proposal</b><br>
     Sistem memeriksa 5 aspek penting secara otomatis.<br>
     Kurang dari 3 aspek → ❌ Proposal ditolak.<br><br>
-    <b style="color:#63b3ed;">Tahap 2 — Penilaian AI</b><br>
+    <b style="color:#63b3ed;">Tahap 2 — Penilaian Otomatis</b><br>
     Proposal yang lolos dinilai lebih dalam oleh Sistem.<br><br>
     <b style="color:#e2e8f0;">Hasil Akhir:</b><br>
     ✅ <b style="color:#68d391;">Direkomendasikan</b> = Lolos semua penilaian<br>
@@ -746,7 +746,7 @@ else:
         rubric_class = "pass" if rubric_result["passed"] else "fail"
         rubric_icon  = "✅" if rubric_result["passed"] else "❌"
         rubric_text  = (
-            f"Kelengkapan Proposal: Lolos ({rubric_result['total']} dari 5 aspek terpenuhi) — lanjut ke Penilaian AI"
+            f"Kelengkapan Proposal: Lolos ({rubric_result['total']} dari 5 aspek terpenuhi) — lanjut ke Penilaian Otomatis"
             if rubric_result["passed"] else
             f"Kelengkapan Proposal: Tidak Memenuhi Syarat ({rubric_result['total']} dari 5 aspek terpenuhi) — proposal tidak dapat dilanjutkan"
         )
